@@ -47,6 +47,13 @@ export default function KPIBar() {
         dim={!hasResult}
       />
       <KPI
+        label="Diverted"
+        value={hasResult ? optimizeResult.flights_diverted : '—'}
+        sub={hasResult && optimizeResult.flights_diverted > 0 ? fmt(optimizeResult.diversion_cost_usd) : undefined}
+        highlight={hasResult && optimizeResult.flights_diverted > 0 ? 'text-yellow-400' : 'text-white'}
+        dim={!hasResult}
+      />
+      <KPI
         label="Optimized Cost"
         value={hasResult ? fmt(optimizeResult.optimized_cost_usd) : '—'}
         highlight="text-slate-200"

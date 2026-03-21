@@ -17,7 +17,7 @@ function StatusDot({ color }) {
 }
 
 export function InboundPanel() {
-  const { scenario, timelineStep, selectedFlightId, setSelectedFlight } = useStore()
+  const { scenario, optimizeResult, timelineStep, selectedFlightId, setSelectedFlight } = useStore()
   if (!scenario) return <PanelSkeleton title="ARRIVALS" />
 
   const simStart = scenario.sim_start_clock
@@ -29,23 +29,35 @@ export function InboundPanel() {
         {scenario.inbound_flights.map((f) => {
           const disrupted = timelineStep >= 1 && f.delay_min > 0
           const isSelected = selectedFlightId === f.flight_id
+          const divDecision = timelineStep === 3 && optimizeResult?.inbound_decisions
+            ? optimizeResult.inbound_decisions.find((d) => d.flight_id === f.flight_id)
+            : null
+          const isDiverted = !!divDecision?.diverted_to
+          const connectingPax = f.total_pax - (f.local_pax ?? 0)
+
+          const dotColor = isDiverted ? 'yellow' : disrupted ? 'red' : 'green'
+          const borderClass = isSelected
+            ? isDiverted
+              ? 'bg-yellow-900/30 border-yellow-500/60'
+              : 'bg-blue-900/40 border-blue-500/60'
+            : 'bg-slate-800/50 border-slate-700/40 hover:border-slate-600'
+
           return (
             <button
               key={f.flight_id}
               onClick={() => setSelectedFlight(isSelected ? null : f.flight_id)}
-              className={`w-full text-left px-3 py-2.5 rounded-lg border transition-all ${
-                isSelected
-                  ? 'bg-blue-900/40 border-blue-500/60'
-                  : 'bg-slate-800/50 border-slate-700/40 hover:border-slate-600'
-              }`}
+              className={`w-full text-left px-3 py-2.5 rounded-lg border transition-all ${borderClass}`}
             >
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-2">
-                  <StatusDot color={disrupted ? 'red' : 'green'} />
+                  <StatusDot color={dotColor} />
                   <span className="text-sm font-semibold text-white">{f.flight_id}</span>
                   <span className="text-xs text-slate-400">{f.origin} → {f.destination}</span>
                 </div>
-                <DelayBadge delay={timelineStep >= 1 ? f.delay_min : 0} />
+                {isDiverted
+                  ? <span className="text-xs font-mono text-yellow-400">DIVERTED</span>
+                  : <DelayBadge delay={timelineStep >= 1 ? f.delay_min : 0} />
+                }
               </div>
               <div className="flex items-center justify-between text-xs text-slate-500">
                 <span>
@@ -53,8 +65,18 @@ export function InboundPanel() {
                     ? MIN_TO_CLOCK(simStart, f.eta_min)
                     : MIN_TO_CLOCK(simStart, f.sta_min)}
                 </span>
-                <span>{f.total_pax} pax · {f.aircraft_type}</span>
+                <span>
+                  {f.local_pax != null
+                    ? `${f.local_pax} lcl · ${connectingPax} cx`
+                    : `${f.total_pax} pax`
+                  } · {f.aircraft_type}
+                </span>
               </div>
+              {isDiverted && (
+                <div className="mt-1 text-xs text-yellow-400/80 font-mono">
+                  → {divDecision.diverted_to} · ${divDecision.diversion_cost_usd.toLocaleString()} transport
+                </div>
+              )}
             </button>
           )
         })}

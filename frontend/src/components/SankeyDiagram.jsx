@@ -100,6 +100,7 @@ export default function SankeyDiagram() {
       .attr('rx', 3)
       .attr('fill', (d) => {
         if (d.side === 'inbound') {
+          if (timelineStep === 3 && d.diverted_to) return NODE_COLORS.inbound.diverted
           return timelineStep >= 1 && d.delay_min > 0
             ? NODE_COLORS.inbound.disrupted
             : NODE_COLORS.inbound.nominal
@@ -174,6 +175,22 @@ export default function SankeyDiagram() {
         .text((d) => `DELAYED +${d.delay_min}min`)
     }
 
+    // ── Diversion badge on diverted inbound nodes (step 3 only) ─────────────
+    if (timelineStep === 3) {
+      labelGroup.selectAll('text.divert-badge')
+        .data(sNodes.filter((n) => n.side === 'inbound' && n.diverted_to))
+        .join('text')
+        .attr('class', 'divert-badge')
+        .attr('x', (d) => d.x0 - 10)
+        .attr('y', (d) => (d.y0 + d.y1) / 2 + (d.delay_min > 0 ? 30 : 19))
+        .attr('text-anchor', 'end')
+        .attr('fill', '#f59e0b')
+        .attr('font-size', 9)
+        .attr('font-weight', '700')
+        .attr('font-family', 'Inter, system-ui, sans-serif')
+        .text((d) => `DIVERTED → ${d.diverted_to}`)
+    }
+
     // ── Tooltip helpers ───────────────────────────────────────────────────────
     const tooltip = d3.select('body').select('#sankey-tooltip')
 
@@ -196,8 +213,15 @@ export default function SankeyDiagram() {
     }
 
     function showNodeTooltip(event, d) {
+      const connectingPax = d.side === 'inbound' ? d.total_pax - d.local_pax : 0
       const lines = d.side === 'inbound'
-        ? [`Flight: ${d.flight_id}`, `From: ${d.origin}`, `Pax: ${d.total_pax}`, d.delay_min > 0 ? `Delay: +${d.delay_min} min` : 'On time']
+        ? [
+            `Flight: ${d.flight_id}`,
+            `From: ${d.origin}`,
+            `${d.local_pax} local + ${connectingPax} connecting`,
+            d.delay_min > 0 ? `Delay: +${d.delay_min} min` : 'On time',
+            d.diverted_to ? `DIVERTED → ${d.diverted_to}` : null,
+          ].filter(Boolean)
         : [`Flight: ${d.flight_id}`, `To: ${d.destination}`, `Local pax: ${d.total_pax_onboard}`, d.delay_applied > 0 ? `Delayed: +${d.delay_applied} min` : 'On schedule', d.cancelled ? 'CANCELLED' : '']
 
       tooltip
@@ -223,6 +247,7 @@ export default function SankeyDiagram() {
           { status: 'at_risk',   label: 'At risk' },
           { status: 'protected', label: 'Protected' },
           { status: 'stranded',  label: 'Stranded' },
+          { status: 'diverted',  label: 'Diverted' },
         ].map(({ status, label }) => (
           <div key={status} className="flex items-center gap-1.5">
             <div

@@ -5,13 +5,19 @@
  *   Left column  → inbound flights  (id: "IN_AC101")
  *   Right column → outbound flights (id: "OUT_AC301")
  *
- * Link structure:
- *   source → target, value = pax count
- *   status: "nominal" | "at_risk" | "protected" | "stranded"
+ * Link status: "nominal" | "at_risk" | "protected" | "stranded"
  */
 
 export function buildSankeyData(scenario, optimizeResult, timelineStep) {
   if (!scenario) return { nodes: [], links: [] }
+
+  // Build diversion map from optimizer result
+  const diversionMap = {}
+  if (optimizeResult?.inbound_decisions) {
+    for (const d of optimizeResult.inbound_decisions) {
+      diversionMap[d.flight_id] = d.diverted_to ?? null
+    }
+  }
 
   const inboundNodes = scenario.inbound_flights.map((f) => ({
     id: `IN_${f.flight_id}`,
@@ -23,11 +29,12 @@ export function buildSankeyData(scenario, optimizeResult, timelineStep) {
     eta_min: f.eta_min,
     sta_min: f.sta_min,
     total_pax: f.total_pax,
+    local_pax: f.local_pax ?? 0,
     aircraft_type: f.aircraft_type,
+    diverted_to: (timelineStep === 3 && diversionMap[f.flight_id]) || null,
   }))
 
   const outboundNodes = scenario.outbound_flights.map((f) => {
-    // In step 3, use the optimizer's ETD
     let etd_min = f.std_min
     let delay_applied = 0
     let cancelled = false
@@ -65,7 +72,6 @@ export function buildSankeyData(scenario, optimizeResult, timelineStep) {
     let status = 'nominal'
 
     if (timelineStep >= 1) {
-      // Check if inbound has a delay
       const inb = scenario.inbound_flights.find((f) => f.flight_id === pg.inbound_flight_id)
       if (inb && inb.delay_min > 0) {
         status = timelineStep >= 2 ? 'at_risk' : 'nominal'
@@ -73,9 +79,14 @@ export function buildSankeyData(scenario, optimizeResult, timelineStep) {
     }
 
     if (timelineStep === 3 && optimizeResult) {
-      const pr = optimizeResult.pax_results.find((r) => r.group_id === pg.group_id)
-      if (pr) {
-        status = pr.connection_made ? 'protected' : 'stranded'
+      // Diverted inbound → distinct 'diverted' status (not stranded)
+      if (diversionMap[pg.inbound_flight_id]) {
+        status = 'diverted'
+      } else {
+        const pr = optimizeResult.pax_results.find((r) => r.group_id === pg.group_id)
+        if (pr) {
+          status = pr.connection_made ? 'protected' : 'stranded'
+        }
       }
     }
 
@@ -99,12 +110,14 @@ export const FLOW_COLORS = {
   at_risk:   { fill: '#ef4444', stroke: '#f87171', opacity: 0.75 },
   protected: { fill: '#22c55e', stroke: '#4ade80', opacity: 0.70 },
   stranded:  { fill: '#f97316', stroke: '#fb923c', opacity: 0.75 },
+  diverted:  { fill: '#a855f7', stroke: '#c084fc', opacity: 0.70 },
 }
 
 export const NODE_COLORS = {
   inbound: {
     nominal:   '#3b82f6',
     disrupted: '#ef4444',
+    diverted:  '#f59e0b',   // amber — distinct from disrupted (red) and nominal (blue)
   },
   outbound: {
     nominal:   '#8b5cf6',
