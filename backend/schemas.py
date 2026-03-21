@@ -70,20 +70,11 @@ class GlobalCosts(BaseModel):
     diversion_hotel_cost_usd: float = 0.0  # Hotel cost per pax when overnight at alternate
 
 
-class ScenarioMeta(BaseModel):
-    scenario_id: str
-    name: str
-    description: str
-    hub: str
-    disruption_label: str = ""
-
-
 class Scenario(BaseModel):
     scenario_id: str
     name: str
     description: str
     hub: str                              # "YYZ"
-    disruption_label: str = ""            # Short badge text, e.g. "YYZ Snowstorm Active"
     sim_start_clock: str                  # "08:00" — human-readable reference
     airports: list[Airport]
     alternate_airports: list[AlternateAirport] = []

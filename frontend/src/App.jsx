@@ -3,6 +3,7 @@ import { useStore } from './store/useStore'
 import SankeyDiagram from './components/SankeyDiagram'
 import { InboundPanel, OutboundPanel } from './components/FlightPanel'
 import KPIBar from './components/KPIBar'
+import AirportStatusBar from './components/AirportStatusBar'
 import Timeline from './components/Timeline'
 import CopilotChat from './components/CopilotChat'
 import { CloudSnow } from 'lucide-react'
@@ -44,6 +45,9 @@ export default function App() {
 
       {/* ── KPI bar ────────────────────────────────────────────────────── */}
       <KPIBar />
+
+      {/* ── Airport status bar ─────────────────────────────────────────── */}
+      <AirportStatusBar />
 
       {/* ── Main content ───────────────────────────────────────────────── */}
       <main className="flex flex-1 overflow-hidden gap-0 min-h-0">

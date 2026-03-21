@@ -3,7 +3,6 @@
   "name": "YYZ Snowstorm — Connecting Bank Disruption",
   "description": "A severe snowstorm hits Toronto Pearson (YYZ). Runway capacity drops from 12 to 4 landings/hour. Six inbound flights suffer cascading delays, with three aircraft competing for two available slots — forcing a strategic diversion to Hamilton (YHM). 312 connecting passengers are at risk across five outbound departures.",
   "hub": "YYZ",
-  "disruption_label": "YYZ Snowstorm Active",
   "sim_start_clock": "10:00",
 
   "airports": [
@@ -116,7 +115,7 @@
       "aircraft_type": "A320",
       "sta_min": 90, "eta_min": 115, "delay_min": 25,
       "capacity": 180, "total_pax": 161,
-      "local_pax": 124, "is_international": false
+      "local_pax": 114, "is_international": false
     },
     {
       "flight_id": "AC418",
@@ -132,7 +131,7 @@
       "aircraft_type": "A320",
       "sta_min": 110, "eta_min": 165, "delay_min": 55,
       "capacity": 180, "total_pax": 172,
-      "local_pax": 128, "is_international": true
+      "local_pax": 119, "is_international": true
     },
     {
       "flight_id": "AC630",
@@ -195,11 +194,25 @@
       "aircraft_type": "A320",
       "std_min": 240, "etd_min": 240, "max_delay_min": 45,
       "capacity": 180, "total_pax_onboard": 130
+    },
+    {
+      "flight_id": "AC803",
+      "origin": "YYZ", "destination": "YUL",
+      "aircraft_type": "Dash8",
+      "std_min": 260, "etd_min": 260, "max_delay_min": 45,
+      "capacity": 78, "total_pax_onboard": 48
+    },
+    {
+      "flight_id": "AC905",
+      "origin": "YYZ", "destination": "YEG",
+      "aircraft_type": "B737",
+      "std_min": 290, "etd_min": 290, "max_delay_min": 60,
+      "capacity": 168, "total_pax_onboard": 102
     }
   ],
 
   "pax_groups": [
-    { "group_id": "PG01", "inbound_flight_id": "AC101", "outbound_flight_id": "AC301", "count": 67, "tier": "economy" },
+    { "group_id": "PG01", "inbound_flight_id": "AC101", "outbound_flight_id": "AC301", "count": 59, "tier": "economy" },
     { "group_id": "PG02", "inbound_flight_id": "AC101", "outbound_flight_id": "AC402", "count": 18, "tier": "business" },
     { "group_id": "PG03", "inbound_flight_id": "AC101", "outbound_flight_id": "AC720", "count": 24, "tier": "economy" },
     { "group_id": "PG04", "inbound_flight_id": "AC202", "outbound_flight_id": "AC301", "count": 41, "tier": "economy" },
@@ -210,7 +223,7 @@
     { "group_id": "PG09", "inbound_flight_id": "AC418", "outbound_flight_id": "AC614", "count": 11, "tier": "business" },
     { "group_id": "PG10", "inbound_flight_id": "AC522", "outbound_flight_id": "AC510", "count": 28, "tier": "economy" },
     { "group_id": "PG11", "inbound_flight_id": "AC522", "outbound_flight_id": "AC720", "count": 16, "tier": "economy" },
-    { "group_id": "PG12", "inbound_flight_id": "AC630", "outbound_flight_id": "AC402", "count": 8,  "tier": "economy" },
+    { "group_id": "PG12", "inbound_flight_id": "AC630", "outbound_flight_id": "AC614", "count": 8,  "tier": "economy" },
 
     { "group_id": "PG13", "inbound_flight_id": "AC108", "outbound_flight_id": "AC402", "count": 19, "tier": "economy" },
     { "group_id": "PG14", "inbound_flight_id": "AC108", "outbound_flight_id": "AC301", "count": 13, "tier": "business" },
@@ -220,12 +233,17 @@
     { "group_id": "PG16", "inbound_flight_id": "AC337", "outbound_flight_id": "AC510", "count": 30, "tier": "economy" },
     { "group_id": "PG17", "inbound_flight_id": "AC337", "outbound_flight_id": "AC720", "count": 22, "tier": "economy" },
 
-    { "group_id": "PG18", "inbound_flight_id": "AC740", "outbound_flight_id": "AC402", "count": 9,  "tier": "economy" },
-    { "group_id": "PG19", "inbound_flight_id": "AC740", "outbound_flight_id": "AC614", "count": 4,  "tier": "business" },
+    { "group_id": "PG18", "inbound_flight_id": "AC740", "outbound_flight_id": "AC803", "count": 9,  "tier": "economy" },
+    { "group_id": "PG19", "inbound_flight_id": "AC740", "outbound_flight_id": "AC905", "count": 4,  "tier": "business" },
 
     { "group_id": "PG20", "inbound_flight_id": "AC850", "outbound_flight_id": "AC301", "count": 18, "tier": "economy" },
     { "group_id": "PG21", "inbound_flight_id": "AC850", "outbound_flight_id": "AC510", "count": 14, "tier": "business" },
-    { "group_id": "PG22", "inbound_flight_id": "AC850", "outbound_flight_id": "AC720", "count": 3,  "tier": "economy" }
+    { "group_id": "PG22", "inbound_flight_id": "AC850", "outbound_flight_id": "AC720", "count": 3,  "tier": "economy" },
+
+    { "group_id": "PG23", "inbound_flight_id": "AC315", "outbound_flight_id": "AC803", "count": 10, "tier": "economy" },
+
+    { "group_id": "PG24", "inbound_flight_id": "AC522", "outbound_flight_id": "AC905", "count": 9,  "tier": "business" },
+    { "group_id": "PG25", "inbound_flight_id": "AC101", "outbound_flight_id": "AC905", "count": 8,  "tier": "business" }
   ],
 
   "global_costs": {
