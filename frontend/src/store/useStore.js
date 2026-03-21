@@ -25,6 +25,7 @@ export const useStore = create((set, get) => ({
   isOptimizing: false,
   selectedFlightId: null,   // highlight a flight across Sankey + panels
   chatOpen: false,
+  showReport: false,
 
   // ── Chat messages ─────────────────────────────────────────────────────────
   chatMessages: [],
@@ -36,6 +37,7 @@ export const useStore = create((set, get) => ({
   setTimelineStep: (step) => set({ timelineStep: step }),
   setSelectedFlight: (id) => set({ selectedFlightId: id }),
   toggleChat: () => set((s) => ({ chatOpen: !s.chatOpen })),
+  setShowReport: (v) => set({ showReport: v }),
 
   fetchScenario: async () => {
     const res = await fetch('/api/scenario')

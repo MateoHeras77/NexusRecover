@@ -6,10 +6,11 @@ import KPIBar from './components/KPIBar'
 import AirportStatusBar from './components/AirportStatusBar'
 import Timeline from './components/Timeline'
 import CopilotChat from './components/CopilotChat'
-import { CloudSnow } from 'lucide-react'
+import ReportPage from './components/ReportPage'
+import { CloudSnow, FileText } from 'lucide-react'
 
 export default function App() {
-  const { fetchScenario, timelineStep, scenario } = useStore()
+  const { fetchScenario, timelineStep, scenario, optimizeResult, showReport, setShowReport } = useStore()
 
   useEffect(() => {
     fetchScenario()
@@ -36,6 +37,15 @@ export default function App() {
                 YYZ Snowstorm Active
               </span>
             </div>
+          )}
+          {timelineStep === 3 && optimizeResult && (
+            <button
+              onClick={() => setShowReport(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-700/30 hover:bg-emerald-700/50 border border-emerald-600/50 rounded-lg text-xs font-semibold text-emerald-300 transition-colors"
+            >
+              <FileText size={13} />
+              Revisar Reporte
+            </button>
           )}
           <div className="text-xs text-slate-500 font-mono">
             {scenario?.hub ?? '—'} · SIM {scenario?.sim_start_clock ?? '--:--'}
@@ -75,6 +85,9 @@ export default function App() {
 
       {/* ── Copilot chat ───────────────────────────────────────────────── */}
       <CopilotChat />
+
+      {/* ── Report page (full-screen overlay) ──────────────────────────── */}
+      {showReport && <ReportPage />}
     </div>
   )
 }
