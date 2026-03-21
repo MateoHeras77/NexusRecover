@@ -28,6 +28,10 @@ export const useStore = create((set, get) => ({
   showReport: false,
   compareMode: false,
   baselineResult: null,
+  journeyPanelOpen: false,
+  selectedGroupId: null,
+  journeySort: 'business',  // 'business' | 'risk' | 'cost'
+  journeyFilter: 'all',     // 'all' | 'connected' | 'stranded'
 
   // ── Chat messages ─────────────────────────────────────────────────────────
   chatMessages: [],
@@ -41,6 +45,11 @@ export const useStore = create((set, get) => ({
   toggleChat: () => set((s) => ({ chatOpen: !s.chatOpen })),
   setShowReport: (v) => set({ showReport: v }),
   toggleCompareMode: () => set((s) => ({ compareMode: !s.compareMode })),
+  toggleJourneyPanel: () => set((s) => ({ journeyPanelOpen: !s.journeyPanelOpen })),
+  openJourneyPanel: (groupId) => set({ journeyPanelOpen: true, selectedGroupId: groupId ?? null }),
+  setSelectedGroup: (id) => set({ selectedGroupId: id }),
+  setJourneySort: (v) => set({ journeySort: v }),
+  setJourneyFilter: (v) => set({ journeyFilter: v }),
 
   fetchScenario: async () => {
     const [scenRes, baseRes] = await Promise.all([

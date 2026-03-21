@@ -12,7 +12,7 @@ const MIN_TO_CLOCK = (simStart, min) => {
 
 export default function SankeyDiagram() {
   const svgRef = useRef(null)
-  const { scenario, optimizeResult, timelineStep, selectedFlightId, setSelectedFlight } = useStore()
+  const { scenario, optimizeResult, timelineStep, selectedFlightId, setSelectedFlight, openJourneyPanel, selectedGroupId, setSelectedGroup } = useStore()
 
   const { nodes, links } = useMemo(
     () => buildSankeyData(scenario, optimizeResult, timelineStep),
@@ -70,6 +70,9 @@ export default function SankeyDiagram() {
       .attr('fill', 'none')
       .attr('opacity', (d) => {
         const base = FLOW_COLORS[d.status]?.opacity ?? 0.5
+        if (selectedGroupId) {
+          return d.group_id === selectedGroupId ? 1 : 0.1
+        }
         if (!selectedFlightId) return base
         const related =
           d.inbound_flight_id === selectedFlightId ||
@@ -77,6 +80,11 @@ export default function SankeyDiagram() {
         return related ? base : 0.1
       })
       .style('cursor', 'pointer')
+      .on('click', (event, d) => {
+        if (d.group_id) {
+          openJourneyPanel(d.group_id)
+        }
+      })
       .on('mouseenter', function (event, d) {
         d3.select(this).attr('opacity', 0.95)
         showLinkTooltip(event, d)
@@ -255,7 +263,7 @@ export default function SankeyDiagram() {
     function hideTooltip() {
       tooltip.style('opacity', 0)
     }
-  }, [nodes, links, selectedFlightId, timelineStep, scenario])
+  }, [nodes, links, selectedFlightId, selectedGroupId, timelineStep, scenario])
 
   return (
     <div className="relative w-full h-full">

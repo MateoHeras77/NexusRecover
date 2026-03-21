@@ -7,15 +7,17 @@ import AirportStatusBar from './components/AirportStatusBar'
 import Timeline from './components/Timeline'
 import CopilotChat from './components/CopilotChat'
 import ReportPage from './components/ReportPage'
-import { CloudSnow, FileText, AlertTriangle, ShieldCheck, GitCompare, ChevronUp, ChevronDown, BarChart2 } from 'lucide-react'
+import { CloudSnow, FileText, AlertTriangle, ShieldCheck, GitCompare, ChevronUp, ChevronDown, BarChart2, Users } from 'lucide-react'
 import SimClock from './components/SimClock'
 import CompareView from './components/CompareView'
 import WaterfallChart from './components/WaterfallChart'
+import PassengerJourneyCards from './components/PassengerJourneyCards'
 
 export default function App() {
   const {
     fetchScenario, timelineStep, scenario, optimizeResult,
     showReport, setShowReport, compareMode, toggleCompareMode,
+    journeyPanelOpen, toggleJourneyPanel,
   } = useStore()
 
   const [showWaterfall, setShowWaterfall] = useState(false)
@@ -67,6 +69,20 @@ export default function App() {
               <ShieldCheck size={12} className="text-emerald-400" />
               <span className="text-xs text-emerald-300 font-medium">PLAN ACTIVE</span>
             </div>
+          )}
+
+          {timelineStep >= 2 && (
+            <button
+              onClick={toggleJourneyPanel}
+              className={`flex items-center gap-1.5 px-3 py-1.5 border rounded-lg text-xs font-semibold transition-colors ${
+                journeyPanelOpen
+                  ? 'bg-blue-700/40 border-blue-500/60 text-blue-200'
+                  : 'bg-slate-700/30 hover:bg-slate-700/50 border-slate-600/40 text-slate-300'
+              }`}
+            >
+              <Users size={13} />
+              Passengers
+            </button>
           )}
 
           {timelineStep === 3 && optimizeResult && !compareMode && (
@@ -164,6 +180,9 @@ export default function App() {
 
       {/* ── Report page (full-screen overlay) ──────────────────────────── */}
       {showReport && <ReportPage />}
+
+      {/* ── Passenger Journey Cards (slide-in panel) ─────────────────────── */}
+      <PassengerJourneyCards />
     </div>
   )
 }
