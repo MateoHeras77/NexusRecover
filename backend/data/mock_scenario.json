@@ -3,6 +3,7 @@
   "name": "YYZ Snowstorm — Connecting Bank Disruption",
   "description": "A severe snowstorm hits Toronto Pearson (YYZ). Runway capacity drops from 12 to 4 landings/hour. Six inbound flights suffer cascading delays, with three aircraft competing for two available slots — forcing a strategic diversion to Hamilton (YHM). 312 connecting passengers are at risk across five outbound departures.",
   "hub": "YYZ",
+  "disruption_label": "YYZ Snowstorm Active",
   "sim_start_clock": "10:00",
 
   "airports": [
