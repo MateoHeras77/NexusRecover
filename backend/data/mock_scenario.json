@@ -1,0 +1,200 @@
+{
+  "scenario_id": "yyz_snowstorm",
+  "name": "YYZ Snowstorm — Connecting Bank Disruption",
+  "description": "A severe snowstorm hits Toronto Pearson (YYZ). Runway capacity drops to 40%. Six inbound flights suffer cascading delays of 25–95 minutes, putting 312 connecting passengers at risk across five outbound departures.",
+  "hub": "YYZ",
+  "sim_start_clock": "10:00",
+
+  "airports": [
+    {
+      "code": "YYZ", "name": "Toronto Pearson", "city": "Toronto",
+      "mct_domestic_min": 45, "mct_international_min": 90,
+      "hotel_cost_usd": 185, "disrupted": true
+    },
+    {
+      "code": "YVR", "name": "Vancouver International", "city": "Vancouver",
+      "mct_domestic_min": 40, "mct_international_min": 75,
+      "hotel_cost_usd": 210, "disrupted": false
+    },
+    {
+      "code": "LAX", "name": "Los Angeles International", "city": "Los Angeles",
+      "mct_domestic_min": 60, "mct_international_min": 90,
+      "hotel_cost_usd": 195, "disrupted": false
+    },
+    {
+      "code": "JFK", "name": "John F. Kennedy International", "city": "New York",
+      "mct_domestic_min": 60, "mct_international_min": 90,
+      "hotel_cost_usd": 220, "disrupted": false
+    },
+    {
+      "code": "ORD", "name": "O'Hare International", "city": "Chicago",
+      "mct_domestic_min": 45, "mct_international_min": 80,
+      "hotel_cost_usd": 170, "disrupted": false
+    },
+    {
+      "code": "MIA", "name": "Miami International", "city": "Miami",
+      "mct_domestic_min": 45, "mct_international_min": 75,
+      "hotel_cost_usd": 160, "disrupted": false
+    }
+  ],
+
+  "aircraft_costs": [
+    { "aircraft_type": "B777", "cost_per_min_usd": 145, "min_turn_time_min": 60 },
+    { "aircraft_type": "B737", "cost_per_min_usd": 82,  "min_turn_time_min": 45 },
+    { "aircraft_type": "A320", "cost_per_min_usd": 78,  "min_turn_time_min": 45 },
+    { "aircraft_type": "Dash8","cost_per_min_usd": 38,  "min_turn_time_min": 30 }
+  ],
+
+  "inbound_flights": [
+    {
+      "flight_id": "AC101",
+      "origin": "YVR", "destination": "YYZ",
+      "aircraft_type": "B777",
+      "sta_min": 60,  "eta_min": 125, "delay_min": 65,
+      "capacity": 350, "total_pax": 302
+    },
+    {
+      "flight_id": "AC202",
+      "origin": "JFK", "destination": "YYZ",
+      "aircraft_type": "B737",
+      "sta_min": 75,  "eta_min": 150, "delay_min": 75,
+      "capacity": 168, "total_pax": 145
+    },
+    {
+      "flight_id": "AC315",
+      "origin": "ORD", "destination": "YYZ",
+      "aircraft_type": "A320",
+      "sta_min": 90,  "eta_min": 115, "delay_min": 25,
+      "capacity": 180, "total_pax": 161
+    },
+    {
+      "flight_id": "AC418",
+      "origin": "MIA", "destination": "YYZ",
+      "aircraft_type": "B737",
+      "sta_min": 100, "eta_min": 195, "delay_min": 95,
+      "capacity": 168, "total_pax": 154
+    },
+    {
+      "flight_id": "AC522",
+      "origin": "LAX", "destination": "YYZ",
+      "aircraft_type": "A320",
+      "sta_min": 110, "eta_min": 165, "delay_min": 55,
+      "capacity": 180, "total_pax": 172
+    },
+    {
+      "flight_id": "AC630",
+      "origin": "ORD", "destination": "YYZ",
+      "aircraft_type": "Dash8",
+      "sta_min": 120, "eta_min": 145, "delay_min": 25,
+      "capacity": 78, "total_pax": 71
+    }
+  ],
+
+  "outbound_flights": [
+    {
+      "flight_id": "AC301",
+      "origin": "YYZ", "destination": "LAX",
+      "aircraft_type": "B777",
+      "std_min": 170, "etd_min": 170, "max_delay_min": 90,
+      "capacity": 350, "total_pax_onboard": 198
+    },
+    {
+      "flight_id": "AC402",
+      "origin": "YYZ", "destination": "YVR",
+      "aircraft_type": "B737",
+      "std_min": 195, "etd_min": 195, "max_delay_min": 75,
+      "capacity": 168, "total_pax_onboard": 87
+    },
+    {
+      "flight_id": "AC510",
+      "origin": "YYZ", "destination": "JFK",
+      "aircraft_type": "A320",
+      "std_min": 210, "etd_min": 210, "max_delay_min": 60,
+      "capacity": 180, "total_pax_onboard": 112
+    },
+    {
+      "flight_id": "AC614",
+      "origin": "YYZ", "destination": "ORD",
+      "aircraft_type": "B737",
+      "std_min": 225, "etd_min": 225, "max_delay_min": 60,
+      "capacity": 168, "total_pax_onboard": 95
+    },
+    {
+      "flight_id": "AC720",
+      "origin": "YYZ", "destination": "MIA",
+      "aircraft_type": "A320",
+      "std_min": 240, "etd_min": 240, "max_delay_min": 45,
+      "capacity": 180, "total_pax_onboard": 130
+    }
+  ],
+
+  "pax_groups": [
+    {
+      "group_id": "PG01",
+      "inbound_flight_id": "AC101", "outbound_flight_id": "AC301",
+      "count": 67, "tier": "economy"
+    },
+    {
+      "group_id": "PG02",
+      "inbound_flight_id": "AC101", "outbound_flight_id": "AC402",
+      "count": 18, "tier": "business"
+    },
+    {
+      "group_id": "PG03",
+      "inbound_flight_id": "AC101", "outbound_flight_id": "AC720",
+      "count": 24, "tier": "economy"
+    },
+    {
+      "group_id": "PG04",
+      "inbound_flight_id": "AC202", "outbound_flight_id": "AC301",
+      "count": 41, "tier": "economy"
+    },
+    {
+      "group_id": "PG05",
+      "inbound_flight_id": "AC202", "outbound_flight_id": "AC614",
+      "count": 29, "tier": "economy"
+    },
+    {
+      "group_id": "PG06",
+      "inbound_flight_id": "AC315", "outbound_flight_id": "AC402",
+      "count": 15, "tier": "economy"
+    },
+    {
+      "group_id": "PG07",
+      "inbound_flight_id": "AC315", "outbound_flight_id": "AC510",
+      "count": 22, "tier": "business"
+    },
+    {
+      "group_id": "PG08",
+      "inbound_flight_id": "AC418", "outbound_flight_id": "AC301",
+      "count": 33, "tier": "economy"
+    },
+    {
+      "group_id": "PG09",
+      "inbound_flight_id": "AC418", "outbound_flight_id": "AC614",
+      "count": 11, "tier": "business"
+    },
+    {
+      "group_id": "PG10",
+      "inbound_flight_id": "AC522", "outbound_flight_id": "AC510",
+      "count": 28, "tier": "economy"
+    },
+    {
+      "group_id": "PG11",
+      "inbound_flight_id": "AC522", "outbound_flight_id": "AC720",
+      "count": 16, "tier": "economy"
+    },
+    {
+      "group_id": "PG12",
+      "inbound_flight_id": "AC630", "outbound_flight_id": "AC402",
+      "count": 8, "tier": "economy"
+    }
+  ],
+
+  "global_costs": {
+    "economy_stranded_cost_usd": 650,
+    "business_stranded_cost_usd": 1950,
+    "cancellation_penalty_usd": 85000,
+    "soft_constraint_penalty_usd": 10000000
+  }
+}

@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+body {
+  margin: 0;
+  background-color: #0a0e1a;
+  color: #f1f5f9;
+  font-family: 'Inter', system-ui, sans-serif;
+  overflow: hidden;
+}
+
+#root {
+  width: 100%;
+  height: 100vh;
+}
+
+/* Sankey pulse animation for at-risk flows */
+@keyframes pulse-opacity {
+  0%, 100% { opacity: 0.85; }
+  50%       { opacity: 0.3; }
+}
+.flow-pulse {
+  animation: pulse-opacity 1.6s ease-in-out infinite;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: #111827; }
+::-webkit-scrollbar-thumb { background: #374151; border-radius: 2px; }
