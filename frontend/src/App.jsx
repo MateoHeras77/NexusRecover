@@ -7,7 +7,8 @@ import AirportStatusBar from './components/AirportStatusBar'
 import Timeline from './components/Timeline'
 import CopilotChat from './components/CopilotChat'
 import ReportPage from './components/ReportPage'
-import { CloudSnow, FileText } from 'lucide-react'
+import { CloudSnow, FileText, AlertTriangle, ShieldCheck } from 'lucide-react'
+import SimClock from './components/SimClock'
 
 export default function App() {
   const { fetchScenario, timelineStep, scenario, optimizeResult, showReport, setShowReport } = useStore()
@@ -20,7 +21,9 @@ export default function App() {
     <div className="flex flex-col h-screen bg-[#0a0e1a] text-slate-100 overflow-hidden">
 
       {/* ── Top bar ────────────────────────────────────────────────────── */}
-      <header className="flex items-center justify-between px-5 h-12 border-b border-slate-700/50 bg-slate-900/90 shrink-0">
+      <header className={`flex items-center justify-between px-5 h-12 border-b border-slate-700/50 shrink-0 transition-colors duration-500 ${
+        timelineStep === 2 ? 'bg-red-950/50' : 'bg-slate-900/90'
+      }`}>
         <div className="flex items-center gap-3">
           <div className="w-6 h-6 bg-blue-600 rounded flex items-center justify-center">
             <span className="text-xs font-bold text-white">N</span>
@@ -30,14 +33,35 @@ export default function App() {
         </div>
 
         <div className="flex items-center gap-3">
-          {timelineStep >= 1 && (
-            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-red-900/30 border border-red-500/30 rounded-full">
-              <CloudSnow size={12} className="text-red-400" />
-              <span className="text-xs text-red-300 font-medium">
-                YYZ Snowstorm Active
-              </span>
+          {/* Dynamic status badge */}
+          {timelineStep === 0 && (
+            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-green-900/20 border border-green-700/30 rounded-full">
+              <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
+              <span className="text-xs text-green-400 font-medium">NORMAL OPS</span>
             </div>
           )}
+          {timelineStep === 1 && (
+            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-900/30 border border-amber-500/30 rounded-full animate-pulse">
+              <CloudSnow size={12} className="text-amber-400" />
+              <span className="text-xs text-amber-300 font-medium">GDP ACTIVE</span>
+            </div>
+          )}
+          {timelineStep === 2 && (
+            <div
+              className="flex items-center gap-1.5 px-2.5 py-1 bg-red-900/40 border border-red-500/40 rounded-full"
+              style={{ animation: 'pulse 0.9s cubic-bezier(0.4,0,0.6,1) infinite' }}
+            >
+              <AlertTriangle size={12} className="text-red-400" />
+              <span className="text-xs text-red-300 font-medium">CRITICAL</span>
+            </div>
+          )}
+          {timelineStep === 3 && (
+            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-900/30 border border-emerald-600/40 rounded-full">
+              <ShieldCheck size={12} className="text-emerald-400" />
+              <span className="text-xs text-emerald-300 font-medium">PLAN ACTIVE</span>
+            </div>
+          )}
+
           {timelineStep === 3 && optimizeResult && (
             <button
               onClick={() => setShowReport(true)}
@@ -47,9 +71,8 @@ export default function App() {
               Revisar Reporte
             </button>
           )}
-          <div className="text-xs text-slate-500 font-mono">
-            {scenario?.hub ?? '—'} · SIM {scenario?.sim_start_clock ?? '--:--'}
-          </div>
+
+          <SimClock />
         </div>
       </header>
 

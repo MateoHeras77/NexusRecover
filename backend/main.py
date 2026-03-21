@@ -145,7 +145,7 @@ async def chat(req: ChatRequest):
     payload = {
         "system_instruction": {"parts": [{"text": system_prompt}]},
         "contents": contents,
-        "generationConfig": {"maxOutputTokens": 1024, "temperature": 0.3},
+        "generationConfig": {"maxOutputTokens": 4096, "temperature": 0.3},
     }
 
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"

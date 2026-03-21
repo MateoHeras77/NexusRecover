@@ -120,40 +120,75 @@ export default function SankeyDiagram() {
       .on('mouseenter', (event, d) => showNodeTooltip(event, d))
       .on('mouseleave', hideTooltip)
 
-    // ── Node labels — flight ID + status tag only ────────────────────────────
+    // ── Node labels — two-line design with plane icon ────────────────────────
     const labelGroup = g.append('g').attr('class', 'labels')
 
-    labelGroup.selectAll('text.flight-id')
+    const labelGroups = labelGroup.selectAll('g.label-group')
       .data(sNodes)
-      .join('text')
-      .attr('class', 'flight-id')
-      .attr('x', (d) => d.side === 'inbound' ? d.x0 - 10 : d.x1 + 10)
-      .attr('y', (d) => (d.y0 + d.y1) / 2 + 4)
-      .attr('text-anchor', (d) => d.side === 'inbound' ? 'end' : 'start')
-      .attr('fill', '#f1f5f9')
-      .attr('font-size', 11)
-      .attr('font-weight', '600')
-      .attr('font-family', 'Inter, system-ui, sans-serif')
-      .text((d) => {
-        if (d.side === 'inbound') {
-          const delay = timelineStep >= 1 && d.delay_min > 0 ? ` +${d.delay_min}m` : ''
-          const divert = timelineStep === 3 && d.diverted_to ? ` → ${d.diverted_to}` : ''
-          return `${d.flight_id}${delay}${divert}`
-        } else {
-          const delay = timelineStep === 3 && d.delay_applied > 0 ? ` +${d.delay_applied}m` : ''
-          const cancelled = d.cancelled ? ' ✕' : ''
-          return `${d.flight_id}${delay}${cancelled}`
-        }
+      .join('g')
+      .attr('class', 'label-group')
+      .style('cursor', 'pointer')
+      .on('click', (event, d) => {
+        setSelectedFlight(selectedFlightId === d.flight_id ? null : d.flight_id)
       })
+      .on('mouseenter', (event, d) => showNodeTooltip(event, d))
+      .on('mouseleave', hideTooltip)
+
+    const isInbound = (d) => d.side === 'inbound'
+    const cx = (d) => isInbound(d) ? d.x0 - 12 : d.x1 + 12
+    const cy = (d) => (d.y0 + d.y1) / 2
+    const anchor = (d) => isInbound(d) ? 'end' : 'start'
+
+    // ── Line 1: ✈ + Flight ID ────────────────────────────────────────────────
+    labelGroups.append('text')
+      .attr('x', cx)
+      .attr('y', (d) => cy(d) - 4)
+      .attr('text-anchor', anchor)
+      .attr('font-family', 'Inter, system-ui, sans-serif')
+      .attr('font-size', 11)
+      .attr('font-weight', '700')
+      .attr('letter-spacing', '0.3')
       .attr('fill', (d) => {
-        if (d.side === 'inbound') {
+        if (isInbound(d)) {
           if (timelineStep === 3 && d.diverted_to) return '#f59e0b'
-          if (timelineStep >= 1 && d.delay_min > 0) return '#ef4444'
+          if (timelineStep >= 1 && d.delay_min > 0) return '#f1f5f9'
           return '#f1f5f9'
         }
-        if (d.cancelled) return '#ef4444'
-        if (timelineStep === 3 && d.delay_applied > 0) return '#f59e0b'
+        if (d.cancelled) return '#f87171'
+        if (timelineStep === 3 && d.delay_applied > 0) return '#f1f5f9'
         return '#f1f5f9'
+      })
+      .text((d) => isInbound(d) ? `✈  ${d.flight_id}` : `${d.flight_id}  ✈`)
+
+    // ── Line 2: status / delay tag ────────────────────────────────────────────
+    labelGroups.append('text')
+      .attr('x', cx)
+      .attr('y', (d) => cy(d) + 9)
+      .attr('text-anchor', anchor)
+      .attr('font-family', 'Inter, system-ui, sans-serif')
+      .attr('font-size', 9.5)
+      .attr('font-weight', '500')
+      .attr('fill', (d) => {
+        if (isInbound(d)) {
+          if (timelineStep === 3 && d.diverted_to) return '#fbbf24'
+          if (timelineStep >= 1 && d.delay_min > 0) return '#f87171'
+          return '#4ade80'
+        }
+        if (d.cancelled) return '#f87171'
+        if (timelineStep === 3 && d.delay_applied > 0) return '#fbbf24'
+        return '#4ade80'
+      })
+      .text((d) => {
+        if (isInbound(d)) {
+          if (timelineStep === 0) return `${d.origin} · on time`
+          if (timelineStep === 3 && d.diverted_to) return `+${d.delay_min}m  →  ${d.diverted_to}`
+          if (d.delay_min > 0) return `+${d.delay_min}m delay`
+          return 'on time'
+        } else {
+          if (d.cancelled) return 'cancelled'
+          if (timelineStep === 3 && d.delay_applied > 0) return `held +${d.delay_applied}m`
+          return `→ ${d.destination}`
+        }
       })
 
     // ── Tooltip helpers ───────────────────────────────────────────────────────

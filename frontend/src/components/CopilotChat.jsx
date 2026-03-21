@@ -43,8 +43,8 @@ export default function CopilotChat() {
   }
 
   return (
-    <div className="fixed bottom-20 right-4 w-80 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-50 flex flex-col overflow-hidden"
-      style={{ maxHeight: '420px' }}
+    <div className="fixed bottom-20 right-4 w-[480px] bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-50 flex flex-col overflow-hidden"
+      style={{ maxHeight: '580px' }}
     >
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-2.5 border-b border-slate-700/60 bg-slate-800/80">
