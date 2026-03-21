@@ -10,6 +10,7 @@ import ReportPage from './components/ReportPage'
 import { CloudSnow, FileText, AlertTriangle, ShieldCheck, GitCompare } from 'lucide-react'
 import SimClock from './components/SimClock'
 import CompareView from './components/CompareView'
+import WaterfallChart from './components/WaterfallChart'
 
 export default function App() {
   const {
@@ -106,9 +107,16 @@ export default function App() {
               <InboundPanel />
             </aside>
 
-            {/* Center — Sankey */}
-            <section className="flex-1 relative overflow-hidden bg-slate-950/40">
-              <SankeyDiagram />
+            {/* Center — Sankey + Waterfall */}
+            <section className="flex-1 overflow-hidden bg-slate-950/40 flex flex-col min-h-0">
+              <div className="flex-1 relative overflow-hidden min-h-0">
+                <SankeyDiagram />
+              </div>
+              {timelineStep === 3 && optimizeResult && (
+                <div className="h-52 border-t border-slate-700/40 shrink-0 overflow-hidden">
+                  <WaterfallChart />
+                </div>
+              )}
             </section>
 
             {/* Right panel — Departures */}
