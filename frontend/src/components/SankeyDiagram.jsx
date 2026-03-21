@@ -26,7 +26,7 @@ export default function SankeyDiagram() {
     const width = el.clientWidth || 900
     const height = el.clientHeight || 560
 
-    const margin = { top: 24, right: 220, bottom: 24, left: 220 }
+    const margin = { top: 24, right: 200, bottom: 24, left: 200 }
     const innerW = width - margin.left - margin.right
     const innerH = height - margin.top - margin.bottom
 

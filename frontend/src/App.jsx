@@ -121,7 +121,7 @@ export default function App() {
         ) : (
           <>
             {/* Left panel — Arrivals */}
-            <aside className="w-44 shrink-0 border-r border-slate-700/40 bg-slate-900/50 px-3 py-3 overflow-hidden flex flex-col">
+            <aside className="w-56 shrink-0 border-r border-slate-700/40 bg-slate-900/50 px-3 py-3 overflow-hidden flex flex-col">
               <InboundPanel />
             </aside>
 
@@ -163,7 +163,7 @@ export default function App() {
             </section>
 
             {/* Right panel — Departures */}
-            <aside className="w-44 shrink-0 border-l border-slate-700/40 bg-slate-900/50 px-3 py-3 overflow-hidden flex flex-col">
+            <aside className="w-56 shrink-0 border-l border-slate-700/40 bg-slate-900/50 px-3 py-3 overflow-hidden flex flex-col">
               <OutboundPanel />
             </aside>
           </>
