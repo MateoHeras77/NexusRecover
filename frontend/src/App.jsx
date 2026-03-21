@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useStore } from './store/useStore'
 import SankeyDiagram from './components/SankeyDiagram'
 import { InboundPanel, OutboundPanel } from './components/FlightPanel'
@@ -7,7 +7,7 @@ import AirportStatusBar from './components/AirportStatusBar'
 import Timeline from './components/Timeline'
 import CopilotChat from './components/CopilotChat'
 import ReportPage from './components/ReportPage'
-import { CloudSnow, FileText, AlertTriangle, ShieldCheck, GitCompare } from 'lucide-react'
+import { CloudSnow, FileText, AlertTriangle, ShieldCheck, GitCompare, ChevronUp, ChevronDown, BarChart2 } from 'lucide-react'
 import SimClock from './components/SimClock'
 import CompareView from './components/CompareView'
 import WaterfallChart from './components/WaterfallChart'
@@ -17,6 +17,8 @@ export default function App() {
     fetchScenario, timelineStep, scenario, optimizeResult,
     showReport, setShowReport, compareMode, toggleCompareMode,
   } = useStore()
+
+  const [showWaterfall, setShowWaterfall] = useState(false)
 
   useEffect(() => {
     fetchScenario()
@@ -103,7 +105,7 @@ export default function App() {
         ) : (
           <>
             {/* Left panel — Arrivals */}
-            <aside className="w-56 shrink-0 border-r border-slate-700/40 bg-slate-900/50 px-3 py-3 overflow-hidden flex flex-col">
+            <aside className="w-44 shrink-0 border-r border-slate-700/40 bg-slate-900/50 px-3 py-3 overflow-hidden flex flex-col">
               <InboundPanel />
             </aside>
 
@@ -112,15 +114,40 @@ export default function App() {
               <div className="flex-1 relative overflow-hidden min-h-0">
                 <SankeyDiagram />
               </div>
+
               {timelineStep === 3 && optimizeResult && (
-                <div className="h-52 border-t border-slate-700/40 shrink-0 overflow-hidden">
-                  <WaterfallChart />
-                </div>
+                <>
+                  {/* Collapsed tab — always visible in step 3 */}
+                  <button
+                    onClick={() => setShowWaterfall(v => !v)}
+                    className="flex items-center justify-between w-full px-4 py-1.5 border-t border-slate-700/40 bg-slate-900/70 hover:bg-slate-800/70 transition-colors shrink-0 group"
+                  >
+                    <div className="flex items-center gap-2">
+                      <BarChart2 size={11} className="text-green-400" />
+                      <span className="text-[11px] font-semibold text-slate-300">Cost Breakdown</span>
+                      <span className="text-[11px] text-slate-500">— optimizer saved</span>
+                      <span className="text-[11px] font-bold text-green-400 font-mono">
+                        ${optimizeResult.savings_usd.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                      </span>
+                    </div>
+                    {showWaterfall
+                      ? <ChevronDown size={12} className="text-slate-500 group-hover:text-slate-300 transition-colors" />
+                      : <ChevronUp size={12} className="text-slate-500 group-hover:text-slate-300 transition-colors" />
+                    }
+                  </button>
+
+                  {/* Expanded chart panel */}
+                  {showWaterfall && (
+                    <div className="h-52 shrink-0 overflow-hidden border-t border-slate-700/30">
+                      <WaterfallChart />
+                    </div>
+                  )}
+                </>
               )}
             </section>
 
             {/* Right panel — Departures */}
-            <aside className="w-56 shrink-0 border-l border-slate-700/40 bg-slate-900/50 px-3 py-3 overflow-hidden flex flex-col">
+            <aside className="w-44 shrink-0 border-l border-slate-700/40 bg-slate-900/50 px-3 py-3 overflow-hidden flex flex-col">
               <OutboundPanel />
             </aside>
           </>

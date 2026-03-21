@@ -45,8 +45,8 @@ export default function SankeyDiagram() {
     const sankeyGen = sankey()
       .nodeId((d) => d.index)
       .nodeAlign(sankeyLeft)
-      .nodeWidth(18)
-      .nodePadding(10)
+      .nodeWidth(16)
+      .nodePadding(20)
       .extent([[0, 0], [innerW, innerH]])
 
     const { nodes: sNodes, links: sLinks } = sankeyGen({
@@ -145,9 +145,9 @@ export default function SankeyDiagram() {
       .attr('y', (d) => cy(d) - 4)
       .attr('text-anchor', anchor)
       .attr('font-family', 'Inter, system-ui, sans-serif')
-      .attr('font-size', 11)
+      .attr('font-size', 10)
       .attr('font-weight', '700')
-      .attr('letter-spacing', '0.3')
+      .attr('letter-spacing', '0.2')
       .attr('fill', (d) => {
         if (isInbound(d)) {
           if (timelineStep === 3 && d.diverted_to) return '#f59e0b'
@@ -166,7 +166,7 @@ export default function SankeyDiagram() {
       .attr('y', (d) => cy(d) + 9)
       .attr('text-anchor', anchor)
       .attr('font-family', 'Inter, system-ui, sans-serif')
-      .attr('font-size', 9.5)
+      .attr('font-size', 8.5)
       .attr('font-weight', '500')
       .attr('fill', (d) => {
         if (isInbound(d)) {

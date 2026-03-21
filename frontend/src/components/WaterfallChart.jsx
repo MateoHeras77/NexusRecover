@@ -252,19 +252,10 @@ export default function WaterfallChart() {
   if (!optimizeResult || series.length === 0) return null
 
   return (
-    <div className="relative w-full h-full flex flex-col bg-slate-950/40 px-3 pt-2 pb-0">
-
-      {/* Header */}
-      <div className="flex items-baseline gap-1.5 mb-1 shrink-0">
-        <span className="text-[11px] font-semibold text-slate-300">Cost Breakdown</span>
-        <span className="text-[11px] text-slate-500">— optimizer saved</span>
-        <span className="text-[11px] font-bold text-green-400 font-mono">
-          {fmtFull(optimizeResult.savings_usd)}
-        </span>
-      </div>
+    <div className="relative w-full h-full bg-slate-950/40 px-3 pt-1 pb-0">
 
       {/* SVG chart */}
-      <div className="flex-1 min-h-0 relative">
+      <div className="w-full h-full relative">
         <svg ref={svgRef} className="w-full h-full" />
 
         {/* Tooltip */}
