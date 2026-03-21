@@ -26,6 +26,8 @@ export const useStore = create((set, get) => ({
   selectedFlightId: null,   // highlight a flight across Sankey + panels
   chatOpen: false,
   showReport: false,
+  compareMode: false,
+  baselineResult: null,
 
   // ── Chat messages ─────────────────────────────────────────────────────────
   chatMessages: [],
@@ -38,11 +40,15 @@ export const useStore = create((set, get) => ({
   setSelectedFlight: (id) => set({ selectedFlightId: id }),
   toggleChat: () => set((s) => ({ chatOpen: !s.chatOpen })),
   setShowReport: (v) => set({ showReport: v }),
+  toggleCompareMode: () => set((s) => ({ compareMode: !s.compareMode })),
 
   fetchScenario: async () => {
-    const res = await fetch('/api/scenario')
-    const data = await res.json()
-    set({ scenario: data })
+    const [scenRes, baseRes] = await Promise.all([
+      fetch('/api/scenario'),
+      fetch('/api/baseline'),
+    ])
+    const [scenario, baselineResult] = await Promise.all([scenRes.json(), baseRes.json()])
+    set({ scenario, baselineResult })
   },
 
   runOptimizer: async () => {

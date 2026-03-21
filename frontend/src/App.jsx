@@ -7,11 +7,15 @@ import AirportStatusBar from './components/AirportStatusBar'
 import Timeline from './components/Timeline'
 import CopilotChat from './components/CopilotChat'
 import ReportPage from './components/ReportPage'
-import { CloudSnow, FileText, AlertTriangle, ShieldCheck } from 'lucide-react'
+import { CloudSnow, FileText, AlertTriangle, ShieldCheck, GitCompare } from 'lucide-react'
 import SimClock from './components/SimClock'
+import CompareView from './components/CompareView'
 
 export default function App() {
-  const { fetchScenario, timelineStep, scenario, optimizeResult, showReport, setShowReport } = useStore()
+  const {
+    fetchScenario, timelineStep, scenario, optimizeResult,
+    showReport, setShowReport, compareMode, toggleCompareMode,
+  } = useStore()
 
   useEffect(() => {
     fetchScenario()
@@ -62,6 +66,15 @@ export default function App() {
             </div>
           )}
 
+          {timelineStep === 3 && optimizeResult && !compareMode && (
+            <button
+              onClick={toggleCompareMode}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-700/20 hover:bg-blue-700/40 border border-blue-600/40 rounded-lg text-xs font-semibold text-blue-300 transition-colors"
+            >
+              <GitCompare size={13} />
+              Compare
+            </button>
+          )}
           {timelineStep === 3 && optimizeResult && (
             <button
               onClick={() => setShowReport(true)}
@@ -84,21 +97,26 @@ export default function App() {
 
       {/* ── Main content ───────────────────────────────────────────────── */}
       <main className="flex flex-1 overflow-hidden gap-0 min-h-0">
+        {compareMode ? (
+          <CompareView />
+        ) : (
+          <>
+            {/* Left panel — Arrivals */}
+            <aside className="w-56 shrink-0 border-r border-slate-700/40 bg-slate-900/50 px-3 py-3 overflow-hidden flex flex-col">
+              <InboundPanel />
+            </aside>
 
-        {/* Left panel — Arrivals */}
-        <aside className="w-56 shrink-0 border-r border-slate-700/40 bg-slate-900/50 px-3 py-3 overflow-hidden flex flex-col">
-          <InboundPanel />
-        </aside>
+            {/* Center — Sankey */}
+            <section className="flex-1 relative overflow-hidden bg-slate-950/40">
+              <SankeyDiagram />
+            </section>
 
-        {/* Center — Sankey */}
-        <section className="flex-1 relative overflow-hidden bg-slate-950/40">
-          <SankeyDiagram />
-        </section>
-
-        {/* Right panel — Departures */}
-        <aside className="w-56 shrink-0 border-l border-slate-700/40 bg-slate-900/50 px-3 py-3 overflow-hidden flex flex-col">
-          <OutboundPanel />
-        </aside>
+            {/* Right panel — Departures */}
+            <aside className="w-56 shrink-0 border-l border-slate-700/40 bg-slate-900/50 px-3 py-3 overflow-hidden flex flex-col">
+              <OutboundPanel />
+            </aside>
+          </>
+        )}
       </main>
 
       {/* ── Timeline scrubber ──────────────────────────────────────────── */}
