@@ -66,19 +66,23 @@ async def chat(req: ChatRequest):
     The LLM acts as an IRROPS Copilot — it explains decisions but never
     calculates financial figures; it only cites numbers from the provided context.
     """
-    api_key = os.getenv("OPENROUTER_API_KEY", "")
+    api_key = os.getenv("GOOGLE_API_KEY", "")
     if not api_key:
-        raise HTTPException(status_code=500, detail="OPENROUTER_API_KEY not configured")
+        raise HTTPException(status_code=500, detail="GOOGLE_API_KEY not configured")
 
-    model = os.getenv("OPENROUTER_MODEL", "google/gemma-3-27b-it:free")
+    model = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
 
     # Build system prompt with scenario context
     context_parts = [
-        "You are NexusRecover Copilot, an AI assistant for airline operations recovery (IRROPS).",
-        "You explain optimization decisions clearly and concisely.",
-        "CRITICAL RULE: Never calculate, estimate, or infer financial figures.",
+        "You are NexusRecover Copilot, an AI assistant specialized in airline irregular operations (IRROPS) recovery.",
+        "NexusRecover is a decision support system that uses a CP-SAT constraint optimizer to compute the best",
+        "recovery plan during airport disruptions — minimizing stranded passengers and total recovery cost.",
+        "You explain optimization decisions clearly and concisely to operations managers.",
+        "You understand the full recovery workflow: scenario analysis → capacity constraints → optimizer run → report.",
+        "CRITICAL RULE: Never calculate, estimate, or infer financial figures on your own.",
         "You may ONLY cite exact numbers that appear in the context below.",
         "If a number is not in the context, say 'that data is not available'.",
+        "Always respond in the same language the user writes in (Spanish or English).",
         "",
         "--- CURRENT SCENARIO ---",
         f"Hub: {_scenario.hub} | Disruption: {_scenario.description}",
@@ -132,30 +136,35 @@ async def chat(req: ChatRequest):
 
     system_prompt = "\n".join(context_parts)
 
-    messages_payload = [{"role": "system", "content": system_prompt}]
+    # Build Gemini-native contents (user/model turns only; system goes separately)
+    contents = []
     for msg in req.messages:
-        messages_payload.append({"role": msg.role, "content": msg.content})
+        role = "model" if msg.role == "assistant" else "user"
+        contents.append({"role": role, "parts": [{"text": msg.content}]})
+
+    payload = {
+        "system_instruction": {"parts": [{"text": system_prompt}]},
+        "contents": contents,
+        "generationConfig": {"maxOutputTokens": 1024, "temperature": 0.3},
+    }
+
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 
     async with httpx.AsyncClient(timeout=30) as client:
         resp = await client.post(
-            "https://openrouter.ai/api/v1/chat/completions",
+            url,
             headers={
-                "Authorization": f"Bearer {api_key}",
-                "HTTP-Referer": "https://nexusrecover.app",
-                "X-Title": "NexusRecover",
+                "x-goog-api-key": api_key,
+                "Content-Type": "application/json",
             },
-            json={
-                "model": model,
-                "messages": messages_payload,
-                "max_tokens": 512,
-                "temperature": 0.3,
-            },
+            json=payload,
         )
 
     if resp.status_code != 200:
-        raise HTTPException(status_code=502, detail=f"OpenRouter error: {resp.text}")
+        print(f"[Gemini] status={resp.status_code} body={resp.text}")
+        raise HTTPException(status_code=502, detail=f"Gemini API error: {resp.text}")
 
-    reply = resp.json()["choices"][0]["message"]["content"]
+    reply = resp.json()["candidates"][0]["content"]["parts"][0]["text"]
     return ChatResponse(reply=reply)
 
 

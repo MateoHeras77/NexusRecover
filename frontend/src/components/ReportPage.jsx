@@ -1,15 +1,39 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useStore } from '../store/useStore'
 import {
   ArrowLeft, Plane, Users, UserX, AlertTriangle, CheckCircle,
   TrendingDown, TrendingUp, Clock, PlaneTakeoff, Hotel,
-  DollarSign, Shield, XCircle,
+  DollarSign, Shield, XCircle, HelpCircle,
 } from 'lucide-react'
 
 const fmtUSD = (n) =>
   n >= 1000 ? `$${(n / 1000).toFixed(1)}K` : `$${Math.round(n).toLocaleString()}`
 const fmtUSDFull = (n) =>
   `$${Math.round(n).toLocaleString()}`
+
+function InfoTooltip({ children }) {
+  const [visible, setVisible] = useState(false)
+  const [pos, setPos] = useState({ x: 0, y: 0 })
+
+  return (
+    <span
+      className="inline-flex items-center ml-1 cursor-help align-middle"
+      onMouseEnter={(e) => { setPos({ x: e.clientX, y: e.clientY }); setVisible(true) }}
+      onMouseLeave={() => setVisible(false)}
+      onMouseMove={(e) => setPos({ x: e.clientX, y: e.clientY })}
+    >
+      <HelpCircle size={11} className={`transition-colors ${visible ? 'text-slate-300' : 'text-slate-500'}`} />
+      {visible && (
+        <span
+          className="fixed w-64 bg-slate-900 border border-slate-500/60 text-slate-300 text-[10px] leading-relaxed rounded-lg px-3 py-2.5 z-[9999] shadow-2xl whitespace-normal font-normal normal-case tracking-normal pointer-events-none"
+          style={{ left: pos.x + 14, top: pos.y - 8 }}
+        >
+          {children}
+        </span>
+      )}
+    </span>
+  )
+}
 
 function StatCard({ icon: Icon, label, value, sub, color = 'slate' }) {
   const colors = {
@@ -131,6 +155,14 @@ export default function ReportPage() {
   const strandedCostOpt = strandedGroups.reduce((a, r) => a + r.cost_stranded_usd, 0)
   const diversionDecisions = optimizeResult.inbound_decisions.filter(d => d.diverted_to)
 
+  // True divert cost = transport + hotel for all pax on diverted flight
+  const diversionWithHotel = diversionDecisions.map(d => {
+    const transportCost = d.diversion_cost_usd
+    const hotelCost = inboundMap[d.flight_id].total_pax * hubAirport.hotel_cost_usd
+    return { ...d, transportCost, hotelCost, totalDivertCost: transportCost + hotelCost }
+  })
+  const totalDiversionCostTrue = diversionWithHotel.reduce((a, d) => a + d.totalDivertCost, 0)
+
   const totalConnectingPax = scenario.pax_groups.reduce((a, g) => a + g.count, 0)
   const savingsPct = Math.round((optimizeResult.savings_usd / optimizeResult.baseline_cost_usd) * 100)
 
@@ -212,7 +244,25 @@ export default function ReportPage() {
           {/* Stranded breakdown table */}
           <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Missed Connections Breakdown</h3>
           <Table
-            headers={['Inbound → Outbound', 'PAX', 'Tier', 'Hotel', 'Compensation', 'Total Cost']}
+            headers={[
+              'Inbound → Outbound', 'PAX', 'Tier',
+              <span key="hotel" className="inline-flex items-center">
+                Hotel
+                <InfoTooltip>
+                  One night accommodation near YYZ + meals + ground transfer to hotel.
+                  <br/><strong className="text-white">Rate: ${hubAirport.hotel_cost_usd}/pax/night</strong> (YYZ area rate, applies per stranded passenger).
+                </InfoTooltip>
+              </span>,
+              <span key="comp" className="inline-flex items-center">
+                Compensation &amp; Rebooking
+                <InfoTooltip>
+                  Regulatory compensation + priority rebooking on next available flight + meal vouchers.
+                  <br/><strong className="text-white">Economy: ${gc.economy_stranded_cost_usd - hubAirport.hotel_cost_usd}/pax</strong>
+                  <br/><strong className="text-violet-300">Business: ${gc.business_stranded_cost_usd - hubAirport.hotel_cost_usd}/pax</strong> (includes lounge access + premium rebooking)
+                </InfoTooltip>
+              </span>,
+              'Total Cost',
+            ]}
             rows={baselineStranded.map(g => ({
               cells: [
                 { v: `${g.inbound_flight_id} → ${g.outbound_flight_id}`, cls: 'text-slate-200 font-sans' },
@@ -283,8 +333,20 @@ export default function ReportPage() {
             <>
               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Diversion Decisions</h3>
               <Table
-                headers={['Flight', 'Route', 'Aircraft', 'PAX', 'Diverted To', 'Transport Cost', 'Reason']}
-                rows={diversionDecisions.map(d => {
+                headers={[
+                  'Flight', 'Route', 'Aircraft', 'PAX', 'Diverted To',
+                  <span key="divcost" className="inline-flex items-center">
+                    Divert Cost
+                    <InfoTooltip>
+                      Total cost per diverted flight includes two components:
+                      <br/>• <strong className="text-amber-300">Ground transport</strong> from alternate airport back to YYZ for all passengers
+                      <br/>• <strong className="text-amber-300">Hotel accommodation</strong> (${hubAirport.hotel_cost_usd}/pax) — passengers overnight at the alternate city before return
+                      <br/><br/>Transport rates: YTZ $45/pax (20 min) · YHM $95/pax (75 min)
+                    </InfoTooltip>
+                  </span>,
+                  'Reason',
+                ]}
+                rows={diversionWithHotel.map(d => {
                   const inb = inboundMap[d.flight_id]
                   const alt = scenario.alternate_airports.find(a => a.code === d.diverted_to)
                   return {
@@ -294,17 +356,23 @@ export default function ReportPage() {
                       { v: inb.aircraft_type, cls: 'text-slate-500' },
                       { v: inb.total_pax, cls: 'text-slate-300' },
                       { v: `${d.diverted_to} — ${alt?.name ?? ''}`, cls: 'text-violet-400 font-sans' },
-                      { v: fmtUSDFull(d.diversion_cost_usd), cls: 'text-amber-400 font-bold' },
+                      {
+                        v: <div>
+                          <div className="text-amber-400 font-bold">{fmtUSDFull(d.totalDivertCost)}</div>
+                          <div className="text-slate-500 text-[9px] font-normal">{fmtUSD(d.transportCost)} transport + {fmtUSD(d.hotelCost)} hotel</div>
+                        </div>,
+                        cls: '',
+                      },
                       { v: 'YYZ capacity crunch', cls: 'text-slate-500 font-sans' },
                     ],
                   }
                 })}
                 footer={[
-                  { v: `${diversionDecisions.length} diversion${diversionDecisions.length !== 1 ? 's' : ''}`, cls: 'text-slate-300 font-sans' },
+                  { v: `${diversionWithHotel.length} diversion${diversionWithHotel.length !== 1 ? 's' : ''}`, cls: 'text-slate-300 font-sans' },
                   { v: '' }, { v: '' },
-                  { v: diversionDecisions.reduce((a,d)=>a+inboundMap[d.flight_id].total_pax,0), cls: 'text-white' },
+                  { v: diversionWithHotel.reduce((a,d)=>a+inboundMap[d.flight_id].total_pax,0), cls: 'text-white' },
                   { v: '' },
-                  { v: fmtUSDFull(optimizeResult.diversion_cost_usd), cls: 'text-amber-400' },
+                  { v: fmtUSDFull(totalDiversionCostTrue), cls: 'text-amber-400' },
                   { v: '' },
                 ]}
               />
@@ -315,7 +383,20 @@ export default function ReportPage() {
           {/* Outbound delay decisions */}
           <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Outbound Delay Decisions</h3>
           <Table
-            headers={['Flight', 'Route', 'Aircraft', 'Scheduled', 'Delay Applied', 'New ETD', 'Delay Cost']}
+            headers={[
+              'Flight', 'Route', 'Aircraft', 'Scheduled', 'Delay Applied', 'New ETD',
+              <span key="delaycost" className="inline-flex items-center">
+                Delay Cost
+                <InfoTooltip>
+                  Operational cost of holding the aircraft at the gate, charged per minute by aircraft type:
+                  <br/>• <strong className="text-white">B777</strong> $145/min
+                  <br/>• <strong className="text-white">B737</strong> $82/min
+                  <br/>• <strong className="text-white">A320</strong> $78/min
+                  <br/>• <strong className="text-white">Dash-8</strong> $38/min
+                  <br/><br/>Includes crew overtime, gate fees, and fuel burn during hold.
+                </InfoTooltip>
+              </span>,
+            ]}
             rows={optimizeResult.flight_decisions.map(fd => {
               const out = outboundMap[fd.flight_id]
               const stdClock = (() => {
@@ -388,7 +469,7 @@ export default function ReportPage() {
             <div className="bg-slate-800/40 rounded-xl border border-slate-700/30 px-4 py-3 text-xs space-y-1.5">
               <p className="text-slate-400 font-semibold uppercase tracking-wider mb-2">Cost Breakdown</p>
               <div className="flex justify-between"><span className="text-slate-500">Delay costs</span><span className="text-amber-400 font-mono">{fmtUSDFull(totalDelayCost)}</span></div>
-              <div className="flex justify-between"><span className="text-slate-500">Diversion transport</span><span className="text-violet-400 font-mono">{fmtUSDFull(optimizeResult.diversion_cost_usd)}</span></div>
+              <div className="flex justify-between"><span className="text-slate-500">Divert cost (transport + hotel)</span><span className="text-violet-400 font-mono">{fmtUSDFull(totalDiversionCostTrue)}</span></div>
               <div className="flex justify-between"><span className="text-slate-500">Remaining stranded</span><span className="text-rose-400 font-mono">{fmtUSDFull(strandedCostOpt)}</span></div>
               <div className="border-t border-slate-700 pt-1.5 flex justify-between font-bold">
                 <span className="text-slate-300">Total</span>
