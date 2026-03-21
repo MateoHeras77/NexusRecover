@@ -7,11 +7,12 @@ import AirportStatusBar from './components/AirportStatusBar'
 import Timeline from './components/Timeline'
 import CopilotChat from './components/CopilotChat'
 import ReportPage from './components/ReportPage'
-import { CloudSnow, FileText, AlertTriangle, ShieldCheck, GitCompare, ChevronUp, ChevronDown, BarChart2, Users, Radio, Hotel, CheckCircle2, Loader2 } from 'lucide-react'
+import { CloudSnow, FileText, AlertTriangle, ShieldCheck, GitCompare, ChevronUp, ChevronDown, BarChart2, Users, Radio, Hotel, CheckCircle2, Loader2, Map } from 'lucide-react'
 import SimClock from './components/SimClock'
 import CompareView from './components/CompareView'
 import WaterfallChart from './components/WaterfallChart'
 import PassengerJourneyCards from './components/PassengerJourneyCards'
+import GeoMap from './components/GeoMap'
 
 function NotifyButton({ label, icon, status, onClick, colorClass, sentClass }) {
   const isSending = status === 'sending'
@@ -56,6 +57,7 @@ export default function App() {
   } = useStore()
 
   const [showWaterfall, setShowWaterfall] = useState(false)
+  const [showMap, setShowMap] = useState(false)
 
   useEffect(() => {
     fetchScenario()
@@ -161,6 +163,14 @@ export default function App() {
             </button>
           )}
 
+          <button
+            onClick={() => setShowMap(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-700/20 hover:bg-indigo-700/40 border border-indigo-600/40 rounded-lg text-xs font-semibold text-indigo-300 transition-colors"
+          >
+            <Map size={13} />
+            Geo Map
+          </button>
+
           <SimClock />
         </div>
       </header>
@@ -234,6 +244,9 @@ export default function App() {
 
       {/* ── Copilot chat ───────────────────────────────────────────────── */}
       <CopilotChat />
+
+      {/* ── Geo Map (full-screen overlay) ───────────────────────────────── */}
+      {showMap && <GeoMap onClose={() => setShowMap(false)} />}
 
       {/* ── Report page (full-screen overlay) ──────────────────────────── */}
       {showReport && <ReportPage />}
