@@ -1,4 +1,9 @@
 import { create } from 'zustand'
+import { buildAuthoritiesPayload, buildHospitalityPayload } from '../lib/notify'
+
+// ── Webhook URLs — replace with your N8N webhook URLs ──────────────────────
+const WEBHOOK_AUTHORITIES = import.meta.env.VITE_WEBHOOK_AUTHORITIES ?? ''
+const WEBHOOK_HOSPITALITY = import.meta.env.VITE_WEBHOOK_HOSPITALITY ?? ''
 
 /**
  * Timeline states:
@@ -33,6 +38,10 @@ export const useStore = create((set, get) => ({
   journeySort: 'business',  // 'business' | 'risk' | 'cost'
   journeyFilter: 'all',     // 'all' | 'connected' | 'stranded'
 
+  // ── Notification state ────────────────────────────────────────────────────
+  notifyAuthStatus: null,   // null | 'sending' | 'sent' | 'error'
+  notifyHospStatus: null,   // null | 'sending' | 'sent' | 'error'
+
   // ── Chat messages ─────────────────────────────────────────────────────────
   chatMessages: [],
   chatLoading: false,
@@ -50,6 +59,44 @@ export const useStore = create((set, get) => ({
   setSelectedGroup: (id) => set({ selectedGroupId: id }),
   setJourneySort: (v) => set({ journeySort: v }),
   setJourneyFilter: (v) => set({ journeyFilter: v }),
+
+  notifyAuthorities: async () => {
+    const { scenario, optimizeResult } = get()
+    if (!scenario || !optimizeResult) return
+    set({ notifyAuthStatus: 'sending' })
+    try {
+      const payload = buildAuthoritiesPayload(scenario, optimizeResult)
+      await fetch(WEBHOOK_AUTHORITIES, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      set({ notifyAuthStatus: 'sent' })
+      setTimeout(() => set({ notifyAuthStatus: null }), 4000)
+    } catch (e) {
+      set({ notifyAuthStatus: 'error' })
+      setTimeout(() => set({ notifyAuthStatus: null }), 4000)
+    }
+  },
+
+  notifyHospitality: async () => {
+    const { scenario, optimizeResult } = get()
+    if (!scenario || !optimizeResult) return
+    set({ notifyHospStatus: 'sending' })
+    try {
+      const payload = buildHospitalityPayload(scenario, optimizeResult)
+      await fetch(WEBHOOK_HOSPITALITY, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      set({ notifyHospStatus: 'sent' })
+      setTimeout(() => set({ notifyHospStatus: null }), 4000)
+    } catch (e) {
+      set({ notifyHospStatus: 'error' })
+      setTimeout(() => set({ notifyHospStatus: null }), 4000)
+    }
+  },
 
   fetchScenario: async () => {
     const [scenRes, baseRes] = await Promise.all([

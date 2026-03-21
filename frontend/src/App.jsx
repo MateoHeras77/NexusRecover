@@ -7,17 +7,52 @@ import AirportStatusBar from './components/AirportStatusBar'
 import Timeline from './components/Timeline'
 import CopilotChat from './components/CopilotChat'
 import ReportPage from './components/ReportPage'
-import { CloudSnow, FileText, AlertTriangle, ShieldCheck, GitCompare, ChevronUp, ChevronDown, BarChart2, Users } from 'lucide-react'
+import { CloudSnow, FileText, AlertTriangle, ShieldCheck, GitCompare, ChevronUp, ChevronDown, BarChart2, Users, Radio, Hotel, CheckCircle2, Loader2 } from 'lucide-react'
 import SimClock from './components/SimClock'
 import CompareView from './components/CompareView'
 import WaterfallChart from './components/WaterfallChart'
 import PassengerJourneyCards from './components/PassengerJourneyCards'
+
+function NotifyButton({ label, icon, status, onClick, colorClass, sentClass }) {
+  const isSending = status === 'sending'
+  const isSent    = status === 'sent'
+  const isError   = status === 'error'
+
+  const base = 'flex items-center gap-1.5 px-3 py-1.5 border rounded-lg text-xs font-semibold transition-all duration-200'
+
+  if (isSent) return (
+    <div className={`${base} ${sentClass}`}>
+      <CheckCircle2 size={13} />
+      Sent ✓
+    </div>
+  )
+
+  if (isError) return (
+    <div className={`${base} bg-red-900/40 border-red-500/60 text-red-300`}>
+      <AlertTriangle size={13} />
+      Failed
+    </div>
+  )
+
+  return (
+    <button
+      onClick={onClick}
+      disabled={isSending}
+      className={`${base} ${colorClass} disabled:opacity-60 disabled:cursor-not-allowed`}
+    >
+      {isSending ? <Loader2 size={13} className="animate-spin" /> : icon}
+      {isSending ? 'Sending…' : label}
+    </button>
+  )
+}
 
 export default function App() {
   const {
     fetchScenario, timelineStep, scenario, optimizeResult,
     showReport, setShowReport, compareMode, toggleCompareMode,
     journeyPanelOpen, toggleJourneyPanel,
+    notifyAuthorities, notifyHospitality,
+    notifyAuthStatus, notifyHospStatus,
   } = useStore()
 
   const [showWaterfall, setShowWaterfall] = useState(false)
@@ -69,6 +104,28 @@ export default function App() {
               <ShieldCheck size={12} className="text-emerald-400" />
               <span className="text-xs text-emerald-300 font-medium">PLAN ACTIVE</span>
             </div>
+          )}
+
+          {timelineStep === 3 && optimizeResult && (
+            <NotifyButton
+              label="Notify Authorities"
+              icon={<Radio size={13} />}
+              status={notifyAuthStatus}
+              onClick={notifyAuthorities}
+              colorClass="bg-red-900/20 hover:bg-red-900/40 border-red-700/40 text-red-300"
+              sentClass="bg-red-900/40 border-red-600/60 text-red-200"
+            />
+          )}
+
+          {timelineStep === 3 && optimizeResult && (
+            <NotifyButton
+              label="Notify Hospitality"
+              icon={<Hotel size={13} />}
+              status={notifyHospStatus}
+              onClick={notifyHospitality}
+              colorClass="bg-amber-900/20 hover:bg-amber-900/40 border-amber-700/40 text-amber-300"
+              sentClass="bg-amber-900/40 border-amber-600/60 text-amber-200"
+            />
           )}
 
           {timelineStep >= 2 && (
