@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useStore } from '../store/useStore'
 import { Send, X, Zap, GitCompare, Bot } from 'lucide-react'
+import ReactMarkdown from 'react-markdown'
 
 export default function CopilotChat() {
   const {
@@ -92,7 +93,22 @@ export default function CopilotChat() {
                 ? 'bg-blue-600/80 text-white rounded-br-sm'
                 : 'bg-slate-700/60 text-slate-200 rounded-bl-sm'
             }`}>
-              {msg.content}
+              {msg.role === 'user' ? msg.content : (
+                <ReactMarkdown
+                  components={{
+                    p: ({ children }) => <p className="mb-1.5 last:mb-0">{children}</p>,
+                    strong: ({ children }) => <strong className="text-white font-semibold">{children}</strong>,
+                    ul: ({ children }) => <ul className="mt-1 mb-1.5 space-y-0.5 pl-3">{children}</ul>,
+                    ol: ({ children }) => <ol className="mt-1 mb-1.5 space-y-0.5 pl-3 list-decimal">{children}</ol>,
+                    li: ({ children }) => <li className="text-slate-300 before:content-['·'] before:mr-1.5 before:text-slate-500">{children}</li>,
+                    h3: ({ children }) => <h3 className="text-white font-semibold mt-2 mb-1">{children}</h3>,
+                    h4: ({ children }) => <h4 className="text-slate-200 font-medium mt-1.5 mb-0.5">{children}</h4>,
+                    code: ({ children }) => <code className="bg-slate-900/60 px-1 rounded text-blue-300 font-mono">{children}</code>,
+                  }}
+                >
+                  {msg.content}
+                </ReactMarkdown>
+              )}
             </div>
           </div>
         ))}
