@@ -50,14 +50,14 @@
       "name": "Billy Bishop Toronto City Airport",
       "transport_cost_per_pax_usd": 45,
       "transport_time_min": 20,
-      "max_diversion_slots": 2
+      "max_diversion_slots": 1
     },
     {
       "code": "YHM",
       "name": "John C. Munro Hamilton International",
       "transport_cost_per_pax_usd": 95,
       "transport_time_min": 75,
-      "max_diversion_slots": 4
+      "max_diversion_slots": 3
     }
   ],
 
@@ -69,6 +69,30 @@
   ],
 
   "inbound_flights": [
+    {
+      "flight_id": "AC108",
+      "origin": "YUL", "destination": "YYZ",
+      "aircraft_type": "B737",
+      "sta_min": 45, "eta_min": 38, "delay_min": -7,
+      "capacity": 168, "total_pax": 95,
+      "local_pax": 63, "is_international": false
+    },
+    {
+      "flight_id": "AC215",
+      "origin": "YOW", "destination": "YYZ",
+      "aircraft_type": "Dash8",
+      "sta_min": 65, "eta_min": 65, "delay_min": 0,
+      "capacity": 78, "total_pax": 71,
+      "local_pax": 49, "is_international": false
+    },
+    {
+      "flight_id": "AC337",
+      "origin": "DFW", "destination": "YYZ",
+      "aircraft_type": "B737",
+      "sta_min": 80, "eta_min": 98, "delay_min": 18,
+      "capacity": 168, "total_pax": 138,
+      "local_pax": 86, "is_international": true
+    },
     {
       "flight_id": "AC101",
       "origin": "YVR", "destination": "YYZ",
@@ -116,6 +140,22 @@
       "sta_min": 120, "eta_min": 145, "delay_min": 25,
       "capacity": 78, "total_pax": 71,
       "local_pax": 63, "is_international": false
+    },
+    {
+      "flight_id": "AC740",
+      "origin": "YUL", "destination": "YYZ",
+      "aircraft_type": "Dash8",
+      "sta_min": 128, "eta_min": 158, "delay_min": 30,
+      "capacity": 78, "total_pax": 76,
+      "local_pax": 63, "is_international": false
+    },
+    {
+      "flight_id": "AC850",
+      "origin": "YOW", "destination": "YYZ",
+      "aircraft_type": "B737",
+      "sta_min": 130, "eta_min": 172, "delay_min": 42,
+      "capacity": 168, "total_pax": 143,
+      "local_pax": 108, "is_international": false
     }
   ],
 
@@ -169,7 +209,22 @@
     { "group_id": "PG09", "inbound_flight_id": "AC418", "outbound_flight_id": "AC614", "count": 11, "tier": "business" },
     { "group_id": "PG10", "inbound_flight_id": "AC522", "outbound_flight_id": "AC510", "count": 28, "tier": "economy" },
     { "group_id": "PG11", "inbound_flight_id": "AC522", "outbound_flight_id": "AC720", "count": 16, "tier": "economy" },
-    { "group_id": "PG12", "inbound_flight_id": "AC630", "outbound_flight_id": "AC402", "count": 8,  "tier": "economy" }
+    { "group_id": "PG12", "inbound_flight_id": "AC630", "outbound_flight_id": "AC402", "count": 8,  "tier": "economy" },
+
+    { "group_id": "PG13", "inbound_flight_id": "AC108", "outbound_flight_id": "AC402", "count": 19, "tier": "economy" },
+    { "group_id": "PG14", "inbound_flight_id": "AC108", "outbound_flight_id": "AC301", "count": 13, "tier": "business" },
+
+    { "group_id": "PG15", "inbound_flight_id": "AC215", "outbound_flight_id": "AC614", "count": 22, "tier": "economy" },
+
+    { "group_id": "PG16", "inbound_flight_id": "AC337", "outbound_flight_id": "AC510", "count": 30, "tier": "economy" },
+    { "group_id": "PG17", "inbound_flight_id": "AC337", "outbound_flight_id": "AC720", "count": 22, "tier": "economy" },
+
+    { "group_id": "PG18", "inbound_flight_id": "AC740", "outbound_flight_id": "AC402", "count": 9,  "tier": "economy" },
+    { "group_id": "PG19", "inbound_flight_id": "AC740", "outbound_flight_id": "AC614", "count": 4,  "tier": "business" },
+
+    { "group_id": "PG20", "inbound_flight_id": "AC850", "outbound_flight_id": "AC301", "count": 18, "tier": "economy" },
+    { "group_id": "PG21", "inbound_flight_id": "AC850", "outbound_flight_id": "AC510", "count": 14, "tier": "business" },
+    { "group_id": "PG22", "inbound_flight_id": "AC850", "outbound_flight_id": "AC720", "count": 3,  "tier": "economy" }
   ],
 
   "global_costs": {

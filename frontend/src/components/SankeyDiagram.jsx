@@ -26,7 +26,7 @@ export default function SankeyDiagram() {
     const width = el.clientWidth || 900
     const height = el.clientHeight || 560
 
-    const margin = { top: 24, right: 200, bottom: 24, left: 200 }
+    const margin = { top: 24, right: 220, bottom: 24, left: 220 }
     const innerW = width - margin.left - margin.right
     const innerH = height - margin.top - margin.bottom
 
@@ -46,7 +46,7 @@ export default function SankeyDiagram() {
       .nodeId((d) => d.index)
       .nodeAlign(sankeyLeft)
       .nodeWidth(18)
-      .nodePadding(22)
+      .nodePadding(10)
       .extent([[0, 0], [innerW, innerH]])
 
     const { nodes: sNodes, links: sLinks } = sankeyGen({
@@ -120,7 +120,7 @@ export default function SankeyDiagram() {
       .on('mouseenter', (event, d) => showNodeTooltip(event, d))
       .on('mouseleave', hideTooltip)
 
-    // ── Node labels (outside the Sankey, in the margin) ──────────────────────
+    // ── Node labels — flight ID + status tag only ────────────────────────────
     const labelGroup = g.append('g').attr('class', 'labels')
 
     labelGroup.selectAll('text.flight-id')
@@ -128,78 +128,44 @@ export default function SankeyDiagram() {
       .join('text')
       .attr('class', 'flight-id')
       .attr('x', (d) => d.side === 'inbound' ? d.x0 - 10 : d.x1 + 10)
-      .attr('y', (d) => (d.y0 + d.y1) / 2 - 7)
+      .attr('y', (d) => (d.y0 + d.y1) / 2 + 4)
       .attr('text-anchor', (d) => d.side === 'inbound' ? 'end' : 'start')
       .attr('fill', '#f1f5f9')
-      .attr('font-size', 12)
+      .attr('font-size', 11)
       .attr('font-weight', '600')
-      .attr('font-family', 'Inter, system-ui, sans-serif')
-      .text((d) => d.flight_id)
-
-    labelGroup.selectAll('text.route')
-      .data(sNodes)
-      .join('text')
-      .attr('class', 'route')
-      .attr('x', (d) => d.side === 'inbound' ? d.x0 - 10 : d.x1 + 10)
-      .attr('y', (d) => (d.y0 + d.y1) / 2 + 6)
-      .attr('text-anchor', (d) => d.side === 'inbound' ? 'end' : 'start')
-      .attr('fill', '#94a3b8')
-      .attr('font-size', 10)
       .attr('font-family', 'Inter, system-ui, sans-serif')
       .text((d) => {
         if (d.side === 'inbound') {
-          const clock = scenario ? MIN_TO_CLOCK(scenario.sim_start_clock, d.eta_min) : ''
-          const tag = timelineStep >= 1 && d.delay_min > 0 ? ` +${d.delay_min}m` : ''
-          return `${d.origin} · ETA ${clock}${tag}`
+          const delay = timelineStep >= 1 && d.delay_min > 0 ? ` +${d.delay_min}m` : ''
+          const divert = timelineStep === 3 && d.diverted_to ? ` → ${d.diverted_to}` : ''
+          return `${d.flight_id}${delay}${divert}`
         } else {
-          const min = timelineStep === 3 ? d.etd_min : d.std_min
-          const clock = scenario ? MIN_TO_CLOCK(scenario.sim_start_clock, min) : ''
-          const tag = timelineStep === 3 && d.delay_applied > 0 ? ` +${d.delay_applied}m` : ''
-          return `${d.destination} · ETD ${clock}${tag}`
+          const delay = timelineStep === 3 && d.delay_applied > 0 ? ` +${d.delay_applied}m` : ''
+          const cancelled = d.cancelled ? ' ✕' : ''
+          return `${d.flight_id}${delay}${cancelled}`
         }
       })
-
-    // ── Delay badge on inbound nodes ─────────────────────────────────────────
-    if (timelineStep >= 1) {
-      labelGroup.selectAll('text.delay-badge')
-        .data(sNodes.filter((n) => n.side === 'inbound' && n.delay_min > 0))
-        .join('text')
-        .attr('class', 'delay-badge')
-        .attr('x', (d) => d.x0 - 10)
-        .attr('y', (d) => (d.y0 + d.y1) / 2 + 19)
-        .attr('text-anchor', 'end')
-        .attr('fill', '#ef4444')
-        .attr('font-size', 9)
-        .attr('font-weight', '600')
-        .attr('font-family', 'Inter, system-ui, sans-serif')
-        .text((d) => `DELAYED +${d.delay_min}min`)
-    }
-
-    // ── Diversion badge on diverted inbound nodes (step 3 only) ─────────────
-    if (timelineStep === 3) {
-      labelGroup.selectAll('text.divert-badge')
-        .data(sNodes.filter((n) => n.side === 'inbound' && n.diverted_to))
-        .join('text')
-        .attr('class', 'divert-badge')
-        .attr('x', (d) => d.x0 - 10)
-        .attr('y', (d) => (d.y0 + d.y1) / 2 + (d.delay_min > 0 ? 30 : 19))
-        .attr('text-anchor', 'end')
-        .attr('fill', '#f59e0b')
-        .attr('font-size', 9)
-        .attr('font-weight', '700')
-        .attr('font-family', 'Inter, system-ui, sans-serif')
-        .text((d) => `DIVERTED → ${d.diverted_to}`)
-    }
+      .attr('fill', (d) => {
+        if (d.side === 'inbound') {
+          if (timelineStep === 3 && d.diverted_to) return '#f59e0b'
+          if (timelineStep >= 1 && d.delay_min > 0) return '#ef4444'
+          return '#f1f5f9'
+        }
+        if (d.cancelled) return '#ef4444'
+        if (timelineStep === 3 && d.delay_applied > 0) return '#f59e0b'
+        return '#f1f5f9'
+      })
 
     // ── Tooltip helpers ───────────────────────────────────────────────────────
     const tooltip = d3.select('body').select('#sankey-tooltip')
 
     function showLinkTooltip(event, d) {
       const statusLabels = {
-        nominal: 'On Time',
-        at_risk: '⚠ At Risk',
+        nominal:   'On Time',
+        at_risk:   '⚠ At Risk',
         protected: '✓ Protected',
-        stranded: '✗ Stranded',
+        stranded:  '✗ Stranded',
+        diverted:  '✈ Diverted to alternate',
       }
       tooltip
         .style('opacity', 1)
@@ -213,22 +179,42 @@ export default function SankeyDiagram() {
     }
 
     function showNodeTooltip(event, d) {
-      const connectingPax = d.side === 'inbound' ? d.total_pax - d.local_pax : 0
-      const lines = d.side === 'inbound'
-        ? [
-            `Flight: ${d.flight_id}`,
-            `From: ${d.origin}`,
-            `${d.local_pax} local + ${connectingPax} connecting`,
-            d.delay_min > 0 ? `Delay: +${d.delay_min} min` : 'On time',
-            d.diverted_to ? `DIVERTED → ${d.diverted_to}` : null,
-          ].filter(Boolean)
-        : [`Flight: ${d.flight_id}`, `To: ${d.destination}`, `Local pax: ${d.total_pax_onboard}`, d.delay_applied > 0 ? `Delayed: +${d.delay_applied} min` : 'On schedule', d.cancelled ? 'CANCELLED' : '']
-
+      let html
+      if (d.side === 'inbound') {
+        const connectingPax = d.total_pax - d.local_pax
+        const etaClock = MIN_TO_CLOCK(scenario.sim_start_clock, d.eta_min)
+        const delayTag = d.delay_min > 0
+          ? `<span style="color:#f87171">+${d.delay_min}m delay</span>`
+          : `<span style="color:#4ade80">On time</span>`
+        const divertLine = d.diverted_to
+          ? `<div style="color:#fbbf24;margin-top:4px">✈ Diverted → ${d.diverted_to}</div>`
+          : ''
+        html = `
+          <div class="font-semibold text-xs mb-1">${d.flight_id} &mdash; ${d.origin} → ${d.destination}</div>
+          <div class="text-xs text-slate-400">ETA ${etaClock} &nbsp;·&nbsp; ${d.aircraft_type}</div>
+          <div class="text-xs mt-1">${delayTag}</div>
+          <div class="text-xs text-slate-300 mt-1">${d.local_pax} local &nbsp;+&nbsp; ${connectingPax} connecting</div>
+          ${divertLine}
+        `
+      } else {
+        const etdClock = MIN_TO_CLOCK(scenario.sim_start_clock, d.etd_min)
+        const delayTag = d.cancelled
+          ? `<span style="color:#f87171">CANCELLED</span>`
+          : d.delay_applied > 0
+            ? `<span style="color:#fbbf24">+${d.delay_applied}m delay</span>`
+            : `<span style="color:#4ade80">On schedule</span>`
+        html = `
+          <div class="font-semibold text-xs mb-1">${d.flight_id} &mdash; ${d.origin} → ${d.destination}</div>
+          <div class="text-xs text-slate-400">ETD ${etdClock} &nbsp;·&nbsp; ${d.aircraft_type}</div>
+          <div class="text-xs mt-1">${delayTag}</div>
+          <div class="text-xs text-slate-300 mt-1">${d.total_pax_onboard} pax onboard</div>
+        `
+      }
       tooltip
         .style('opacity', 1)
         .style('left', `${event.pageX + 12}px`)
         .style('top', `${event.pageY - 28}px`)
-        .html(`<div class="text-xs space-y-0.5">${lines.filter(Boolean).map(l => `<div>${l}</div>`).join('')}</div>`)
+        .html(html)
     }
 
     function hideTooltip() {
