@@ -1,10 +1,6 @@
 import { create } from 'zustand'
 import { buildAuthoritiesPayload, buildHospitalityPayload } from '../lib/notify'
 
-// ── Webhook URLs — replace with your N8N webhook URLs ──────────────────────
-const WEBHOOK_AUTHORITIES = import.meta.env.VITE_WEBHOOK_AUTHORITIES ?? ''
-const WEBHOOK_HOSPITALITY = import.meta.env.VITE_WEBHOOK_HOSPITALITY ?? ''
-
 /**
  * Timeline states:
  *  0 = Normal operations
@@ -66,11 +62,12 @@ export const useStore = create((set, get) => ({
     set({ notifyAuthStatus: 'sending' })
     try {
       const payload = buildAuthoritiesPayload(scenario, optimizeResult)
-      await fetch(WEBHOOK_AUTHORITIES, {
+      const res = await fetch('/api/notify-authorities', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
       set({ notifyAuthStatus: 'sent' })
       setTimeout(() => set({ notifyAuthStatus: null }), 4000)
     } catch (e) {
@@ -85,11 +82,12 @@ export const useStore = create((set, get) => ({
     set({ notifyHospStatus: 'sending' })
     try {
       const payload = buildHospitalityPayload(scenario, optimizeResult)
-      await fetch(WEBHOOK_HOSPITALITY, {
+      const res = await fetch('/api/notify-hospitality', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
       set({ notifyHospStatus: 'sent' })
       setTimeout(() => set({ notifyHospStatus: null }), 4000)
     } catch (e) {

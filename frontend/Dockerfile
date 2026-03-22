@@ -8,12 +8,6 @@ RUN npm ci
 
 COPY . .
 
-# VITE_* vars are baked into the JS bundle at build time
-ARG VITE_WEBHOOK_AUTHORITIES
-ARG VITE_WEBHOOK_HOSPITALITY
-ENV VITE_WEBHOOK_AUTHORITIES=$VITE_WEBHOOK_AUTHORITIES
-ENV VITE_WEBHOOK_HOSPITALITY=$VITE_WEBHOOK_HOSPITALITY
-
 RUN npm run build
 
 # ── Stage 2: serve ────────────────────────────────────────────────────────────

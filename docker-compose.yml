@@ -6,6 +6,8 @@ services:
     environment:
       - GOOGLE_API_KEY=${GOOGLE_API_KEY}
       - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.0-flash}
+      - WEBHOOK_AUTHORITIES=${WEBHOOK_AUTHORITIES:-}
+      - WEBHOOK_HOSPITALITY=${WEBHOOK_HOSPITALITY:-}
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
@@ -16,9 +18,6 @@ services:
   frontend:
     build:
       context: ./frontend
-      args:
-        VITE_WEBHOOK_AUTHORITIES: ${VITE_WEBHOOK_AUTHORITIES:-}
-        VITE_WEBHOOK_HOSPITALITY: ${VITE_WEBHOOK_HOSPITALITY:-}
     depends_on:
       backend:
         condition: service_healthy

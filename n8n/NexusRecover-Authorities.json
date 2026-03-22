@@ -1,0 +1,85 @@
+{
+  "name": "NexusRecover — Authorities Notification",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "authorities",
+        "responseMode": "onReceived",
+        "responseData": "successMessage",
+        "responseContentType": "application/json"
+      },
+      "id": "webhook_authorities",
+      "name": "Webhook Authorities",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract payload and format email body\nconst payload = $json;\nconst disruption = payload.disruption || {};\nconst optimizer = payload.optimizer_summary || {};\nconst diversions = payload.diversion_orders || [];\nconst holds = payload.hold_orders || [];\n\nlet emailBody = `\n<h2>🚨 NexusRecover IRROPS Plan Activated</h2>\n<p><strong>Disruption:</strong> ${disruption.event || 'Unknown'}</p>\n<p><strong>Hub:</strong> ${disruption.hub_airport || 'YYZ'}</p>\n\n<h3>Capacity Impact</h3>\n<ul>\n  <li>Nominal capacity: ${disruption.runway_capacity_nominal_arr_per_hr || 12} arr/hr</li>\n  <li>Storm capacity: ${disruption.runway_capacity_storm_arr_per_hr || 4} arr/hr</li>\n  <li>Reduction: ${disruption.capacity_reduction_pct || 67}%</li>\n</ul>\n\n<h3>Optimizer Decision Summary</h3>\n<ul>\n  <li>Baseline cost: $${optimizer.baseline_cost_usd?.toLocaleString() || 0}</li>\n  <li>Optimized cost: $${optimizer.optimized_cost_usd?.toLocaleString() || 0}</li>\n  <li>Savings: $${optimizer.savings_usd?.toLocaleString() || 0} (${optimizer.savings_pct || 0}%)</li>\n  <li>PAX protected: ${optimizer.pax_groups_protected || 0}</li>\n  <li>PAX stranded: ${optimizer.pax_groups_stranded || 0}</li>\n  <li>Flights held: ${optimizer.flights_held || 0}</li>\n  <li>Flights diverted: ${optimizer.flights_diverted || 0}</li>\n</ul>\n\n<h3>⚠️ DIVERSION ORDERS (${diversions.length})</h3>\n`;\n\nfor (const div of diversions) {\n  emailBody += `\n  <div style=\"border: 1px solid #ddd; padding: 10px; margin: 10px 0; border-radius: 4px;\">\n    <p><strong>${div.flight_id}</strong> → ${div.to_airport} (${div.to_airport_name})</p>\n    <p>ETA: ${div.eta_at_alternate} | PAX: ${div.total_pax_onboard} (Biz: ${div.pax_breakdown?.business || 0}, Eco: ${div.pax_breakdown?.economy || 0})</p>\n    <p><strong>Contacts to notify:</strong></p>\n    <ul>\n      ${div.contacts_to_notify?.map(c => `<li>${c}</li>`).join('') || ''}\n    </ul>\n    <p><strong>Ground ops required:</strong></p>\n    <ul>\n      ${div.ground_ops_required?.map(g => `<li>${g}</li>`).join('') || ''}\n    </ul>\n  </div>\n  `;\n}\n\nemailBody += `\n<h3>🛬 DEPARTURE HOLD ORDERS (${holds.length})</h3>\n`;\n\nfor (const hold of holds) {\n  emailBody += `\n  <div style=\"border: 1px solid #ddd; padding: 10px; margin: 10px 0; border-radius: 4px;\">\n    <p><strong>${hold.flight_id}</strong> to ${hold.destination}</p>\n    <p>Original ETD: ${hold.original_etd} → Revised ETD: ${hold.revised_etd} (+${hold.delay_applied_min}m hold)</p>\n    <p>Protecting ${hold.connecting_pax_protected} connecting PAX | Hold cost: $${hold.hold_cost_usd?.toLocaleString() || 0}</p>\n  </div>\n  `;\n}\n\nemailBody += `\n<hr />\n<p><small>Issued at: ${payload.issued_at_utc} | System: ${payload.issued_by}</small></p>\n`;\n\nreturn {\n  email_body: emailBody,\n  payload: payload\n};"
+      },
+      "id": "code_format",
+      "name": "Format Email Body",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [550, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "=YOUR_GMAIL@gmail.com",
+        "toList": {
+          "values": [
+            {
+              "email": "atc@yyz.example.com"
+            },
+            {
+              "email": "ops@yyz.example.com"
+            },
+            {
+              "email": "dispatch@aircanada.example.com"
+            }
+          ]
+        },
+        "subject": "[URGENT] NexusRecover IRROPS Plan Activated - YYZ",
+        "htmlBody": "={{$node[\"Format Email Body\"].json.email_body}}"
+      },
+      "id": "email_send",
+      "name": "Send Email to Authorities",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 1,
+      "position": [850, 300],
+      "credentials": {
+        "smtp": "gmail_smtp"
+      }
+    }
+  ],
+  "connections": {
+    "webhook_authorities": {
+      "main": [
+        [
+          {
+            "node": "code_format",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "code_format": {
+      "main": [
+        [
+          {
+            "node": "email_send",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "id": "nexusrecover_authorities_workflow"
+}
