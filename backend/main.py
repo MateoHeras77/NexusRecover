@@ -173,15 +173,19 @@ async def notify_authorities(payload: dict):
     """Proxy webhook to N8N — Authorities notification."""
     webhook_url = os.getenv("WEBHOOK_AUTHORITIES", "")
     if not webhook_url:
+        print("[notify-authorities] WEBHOOK_AUTHORITIES not configured")
         raise HTTPException(status_code=500, detail="WEBHOOK_AUTHORITIES not configured")
 
     try:
+        print(f"[notify-authorities] Sending to {webhook_url}")
         async with httpx.AsyncClient(timeout=30) as client:
             resp = await client.post(webhook_url, json=payload)
         if resp.status_code >= 400:
+            print(f"[notify-authorities] Webhook error: {resp.status_code} {resp.text}")
             raise HTTPException(status_code=502, detail=f"Webhook error: {resp.text}")
         return {"ok": True, "message": "Authorities notified"}
     except Exception as e:
+        print(f"[notify-authorities] Exception: {str(e)}")
         raise HTTPException(status_code=502, detail=f"Webhook failed: {str(e)}")
 
 
@@ -190,15 +194,19 @@ async def notify_hospitality(payload: dict):
     """Proxy webhook to N8N — Hospitality notification."""
     webhook_url = os.getenv("WEBHOOK_HOSPITALITY", "")
     if not webhook_url:
+        print("[notify-hospitality] WEBHOOK_HOSPITALITY not configured")
         raise HTTPException(status_code=500, detail="WEBHOOK_HOSPITALITY not configured")
 
     try:
+        print(f"[notify-hospitality] Sending to {webhook_url}")
         async with httpx.AsyncClient(timeout=30) as client:
             resp = await client.post(webhook_url, json=payload)
         if resp.status_code >= 400:
+            print(f"[notify-hospitality] Webhook error: {resp.status_code} {resp.text}")
             raise HTTPException(status_code=502, detail=f"Webhook error: {resp.text}")
         return {"ok": True, "message": "Hospitality notified"}
     except Exception as e:
+        print(f"[notify-hospitality] Exception: {str(e)}")
         raise HTTPException(status_code=502, detail=f"Webhook failed: {str(e)}")
 
 
