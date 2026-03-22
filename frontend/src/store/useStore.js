@@ -137,13 +137,23 @@ export const useStore = create((set, get) => ({
           optimize_result: optimizeResult,
         }),
       })
+      if (res.status === 429 || res.status === 502) {
+        set({
+          chatMessages: [...newMessages, { role: 'assistant', content: '⚠️ Se agotó la cuota de respuestas de Gemini. Por favor intenta de nuevo más tarde.' }],
+          chatLoading: false,
+        })
+        return
+      }
       const data = await res.json()
       set({
         chatMessages: [...newMessages, { role: 'assistant', content: data.reply }],
         chatLoading: false,
       })
     } catch (e) {
-      set({ chatLoading: false })
+      set({
+        chatMessages: [...newMessages, { role: 'assistant', content: '⚠️ Se agotó la cuota de respuestas de Gemini. Por favor intenta de nuevo más tarde.' }],
+        chatLoading: false,
+      })
     }
   },
 
