@@ -281,6 +281,9 @@ export default function GeoMap({ onClose }) {
       getSourceColor:    d => d.color,
       getTargetColor:    d => d.color,
       getWidth:          d => d.width,
+      getHeight:         0.3,
+      greatCircle:       true,
+      numSegments:       128,
       pickable: true,
     }),
 

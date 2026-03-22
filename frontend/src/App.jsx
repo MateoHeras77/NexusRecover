@@ -75,6 +75,12 @@ export default function App() {
             <span className="text-xs font-bold text-white">N</span>
           </div>
           <span className="text-sm font-bold tracking-wide text-white">NexusRecover</span>
+          <div className="relative group hidden md:block">
+            <img src="/image.png" alt="" className="h-5 w-auto opacity-80" />
+            <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <img src="/tebas.png" alt="" className="max-h-[60vh] max-w-[60vw] w-auto drop-shadow-2xl rounded-xl" />
+            </div>
+          </div>
           <span className="text-xs text-slate-500 hidden md:block">IRROPS Decision Support System</span>
         </div>
 
