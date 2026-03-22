@@ -1,0 +1,1 @@
+- [project_hospitality_email.md](project_hospitality_email.md) - Hospitality workflow enhanced with SMTP email node, bifurcated output, HTML email body

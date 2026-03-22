@@ -30,7 +30,9 @@ Dos workflows **listos para importar y activar**. Sin configuración de credenci
 
 ## Estructura de los Workflows
 
-Cada workflow tiene 3 nodos:
+**Authorities** tiene 3 nodos (Webhook -> Format Text -> Write to File).
+
+**Hospitality** tiene 4 nodos con bifurcacion:
 
 ```
 ┌─ Webhook ─────────────────────────────────────────┐
@@ -40,15 +42,17 @@ Cada workflow tiene 3 nodos:
                                │
 ┌──────────────────────────────▼──────────────────────┐
 │ Format Text (Code Node)                             │
-│ Convierte payload JSON a texto plano legible        │
-│ con emojis, bordes, y formato visual                │
-└──────────────────────────────┬──────────────────────┘
-                               │
-┌──────────────────────────────▼──────────────────────┐
-│ Write to File (Binary File)                         │
-│ Guarda a: /tmp/nexusrecover_[type]_[timestamp].txt │
-│ Ejm: /tmp/nexusrecover_authorities_2026-03-21_...  │
-└──────────────────────────────────────────────────────┘
+│ Convierte payload JSON a:                           │
+│   - Texto plano (emojis, bordes)                    │
+│   - HTML formateado (tablas, colores)               │
+│   - Subject dinamico del email                      │
+└──────────────┬───────────────┬──────────────────────┘
+               │               │
+┌──────────────▼────┐  ┌───────▼──────────────────────┐
+│ Write to File     │  │ Send Email (SMTP)            │
+│ /tmp/nexus...txt  │  │ Envia HTML a wmateohv@      │
+│                   │  │ gmail.com via Gmail SMTP    │
+└───────────────────┘  └──────────────────────────────┘
 ```
 
 ---
@@ -177,8 +181,44 @@ Los archivos en `/tmp/` se borran al reiniciar el servidor. Para persistencia:
 
 - Los workflows se guardan en **borrador** hasta que actives el toggle
 - Cada ejecución genera un archivo con timestamp único
-- No hay dependencias de credenciales — es plug-and-play
+- **Authorities** no tiene dependencias de credenciales (plug-and-play)
+- **Hospitality** requiere configurar credenciales SMTP para el nodo Send Email (ver abajo)
 - Los Code Nodes usan JavaScript puro (N8N ejecuta en Node.js)
+
+---
+
+## Configurar Credenciales SMTP (Hospitality)
+
+El nodo **Send Email** requiere una credencial SMTP de Gmail. Sigue estos pasos:
+
+1. En N8N, ve a **Settings** (engranaje) -> **Credentials**
+2. Click **+ Add Credential** -> busca **SMTP**
+3. Configura con estos valores:
+
+| Campo | Valor |
+|-------|-------|
+| **Name** | `NexusRecover SMTP` |
+| **Host** | `smtp.gmail.com` |
+| **Port** | `587` |
+| **SSL/TLS** | `STARTTLS` |
+| **User** | `wmateohv@gmail.com` |
+| **Password** | [App Password - ver abajo] |
+
+4. Click **Save**
+5. Abre el workflow **Hospitality** -> click en nodo **Send Email**
+6. En **Credential to connect with** selecciona `NexusRecover SMTP`
+7. **Save** el workflow
+
+### Generar App Password para Gmail
+
+1. Ve a https://myaccount.google.com/apppasswords
+2. **Requiere 2FA activado en tu cuenta Gmail**
+3. Selecciona:
+   - **App:** Other → escribe `N8N NexusRecover`
+   - **Device:** Windows Computer (o tu dispositivo)
+4. Click **Generate**
+5. Copia la **contraseña de 16 caracteres** (sin espacios) y usala en N8N
+6. Los emails llegará a **wmateohv@gmail.com** automáticamente
 
 ---
 
