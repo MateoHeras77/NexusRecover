@@ -19,8 +19,6 @@ services:
       args:
         VITE_WEBHOOK_AUTHORITIES: ${VITE_WEBHOOK_AUTHORITIES:-}
         VITE_WEBHOOK_HOSPITALITY: ${VITE_WEBHOOK_HOSPITALITY:-}
-    ports:
-      - "80:80"
     depends_on:
       backend:
         condition: service_healthy
