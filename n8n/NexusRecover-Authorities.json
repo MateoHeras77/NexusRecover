@@ -8,78 +8,46 @@
         "responseData": "successMessage",
         "responseContentType": "application/json"
       },
-      "id": "webhook_authorities",
-      "name": "Webhook Authorities",
+      "id": "6ee9e3e4-8b5d-4c2a-9f1d-2e8a1b3c4d5e",
+      "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
       "position": [250, 300]
     },
     {
       "parameters": {
-        "jsCode": "// Extract payload and format email body\nconst payload = $json;\nconst disruption = payload.disruption || {};\nconst optimizer = payload.optimizer_summary || {};\nconst diversions = payload.diversion_orders || [];\nconst holds = payload.hold_orders || [];\n\nlet emailBody = `\n<h2>🚨 NexusRecover IRROPS Plan Activated</h2>\n<p><strong>Disruption:</strong> ${disruption.event || 'Unknown'}</p>\n<p><strong>Hub:</strong> ${disruption.hub_airport || 'YYZ'}</p>\n\n<h3>Capacity Impact</h3>\n<ul>\n  <li>Nominal capacity: ${disruption.runway_capacity_nominal_arr_per_hr || 12} arr/hr</li>\n  <li>Storm capacity: ${disruption.runway_capacity_storm_arr_per_hr || 4} arr/hr</li>\n  <li>Reduction: ${disruption.capacity_reduction_pct || 67}%</li>\n</ul>\n\n<h3>Optimizer Decision Summary</h3>\n<ul>\n  <li>Baseline cost: $${optimizer.baseline_cost_usd?.toLocaleString() || 0}</li>\n  <li>Optimized cost: $${optimizer.optimized_cost_usd?.toLocaleString() || 0}</li>\n  <li>Savings: $${optimizer.savings_usd?.toLocaleString() || 0} (${optimizer.savings_pct || 0}%)</li>\n  <li>PAX protected: ${optimizer.pax_groups_protected || 0}</li>\n  <li>PAX stranded: ${optimizer.pax_groups_stranded || 0}</li>\n  <li>Flights held: ${optimizer.flights_held || 0}</li>\n  <li>Flights diverted: ${optimizer.flights_diverted || 0}</li>\n</ul>\n\n<h3>⚠️ DIVERSION ORDERS (${diversions.length})</h3>\n`;\n\nfor (const div of diversions) {\n  emailBody += `\n  <div style=\"border: 1px solid #ddd; padding: 10px; margin: 10px 0; border-radius: 4px;\">\n    <p><strong>${div.flight_id}</strong> → ${div.to_airport} (${div.to_airport_name})</p>\n    <p>ETA: ${div.eta_at_alternate} | PAX: ${div.total_pax_onboard} (Biz: ${div.pax_breakdown?.business || 0}, Eco: ${div.pax_breakdown?.economy || 0})</p>\n    <p><strong>Contacts to notify:</strong></p>\n    <ul>\n      ${div.contacts_to_notify?.map(c => `<li>${c}</li>`).join('') || ''}\n    </ul>\n    <p><strong>Ground ops required:</strong></p>\n    <ul>\n      ${div.ground_ops_required?.map(g => `<li>${g}</li>`).join('') || ''}\n    </ul>\n  </div>\n  `;\n}\n\nemailBody += `\n<h3>🛬 DEPARTURE HOLD ORDERS (${holds.length})</h3>\n`;\n\nfor (const hold of holds) {\n  emailBody += `\n  <div style=\"border: 1px solid #ddd; padding: 10px; margin: 10px 0; border-radius: 4px;\">\n    <p><strong>${hold.flight_id}</strong> to ${hold.destination}</p>\n    <p>Original ETD: ${hold.original_etd} → Revised ETD: ${hold.revised_etd} (+${hold.delay_applied_min}m hold)</p>\n    <p>Protecting ${hold.connecting_pax_protected} connecting PAX | Hold cost: $${hold.hold_cost_usd?.toLocaleString() || 0}</p>\n  </div>\n  `;\n}\n\nemailBody += `\n<hr />\n<p><small>Issued at: ${payload.issued_at_utc} | System: ${payload.issued_by}</small></p>\n`;\n\nreturn {\n  email_body: emailBody,\n  payload: payload\n};"
+        "jsCode": "const payload = $json;\nconst timestamp = new Date().toISOString();\nconst dateStr = new Date().toLocaleString('es-CO');\n\nlet output = `\n╔════════════════════════════════════════════════════════════════╗\n║     NEXUSRECOVER — AUTHORITIES NOTIFICATION                    ║\n║                 IRROPS Decision Support System                  ║\n╚════════════════════════════════════════════════════════════════╝\n\n⏰ Timestamp: ${dateStr}\nID: ${payload.scenario_id || 'unknown'}\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nDISRUPTION CONTEXT\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n🛫 Hub Airport:           ${payload.disruption?.hub_airport || 'YYZ'}\n📍 Location:             ${payload.disruption?.hub_airport_name || 'Toronto Pearson International'}\n⚠️  Event:                ${payload.disruption?.event || 'Unknown'}\n\n📊 Capacity Impact:\n   • Nominal capacity:    ${payload.disruption?.runway_capacity_nominal_arr_per_hr || 12} arr/hr\n   • Storm capacity:      ${payload.disruption?.runway_capacity_storm_arr_per_hr || 4} arr/hr\n   • Reduction:          ${payload.disruption?.capacity_reduction_pct || 67}%\n\n✈️  Flights affected:\n   • Inbound with delays: ${payload.disruption?.affected_inbound_flights || 0}/${payload.disruption?.total_inbound_flights || 0}\n   • Total outbound:     ${payload.disruption?.total_outbound_flights || 0}\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nOPTIMIZER SUMMARY\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n💰 Costs:\n   • Baseline (no action):      $${(payload.optimizer_summary?.baseline_cost_usd || 0).toLocaleString('en-US')}\n   • Optimized (with plan):     $${(payload.optimizer_summary?.optimized_cost_usd || 0).toLocaleString('en-US')}\n   ✓ Savings:                   $${(payload.optimizer_summary?.savings_usd || 0).toLocaleString('en-US')} (${payload.optimizer_summary?.savings_pct || 0}%)\n\n👥 Passenger Impact:\n   • Total PAX groups:          ${payload.optimizer_summary?.total_pax_groups || 0}\n   ✓ Protected (connected):     ${payload.optimizer_summary?.pax_groups_protected || 0}\n   ✗ Stranded (rebooking):      ${payload.optimizer_summary?.pax_groups_stranded || 0}\n\n✈️  Flight Actions:\n   • Holds applied:             ${payload.optimizer_summary?.flights_held || 0}\n   • Diversions ordered:        ${payload.optimizer_summary?.flights_diverted || 0}\n   • Total delay applied:       ${payload.optimizer_summary?.total_delay_minutes_applied || 0} minutes\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nDIVERSION ORDERS (${(payload.diversion_orders || []).length})\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;\n\nif (payload.diversion_orders && payload.diversion_orders.length > 0) {\n  for (let i = 0; i < payload.diversion_orders.length; i++) {\n    const div = payload.diversion_orders[i];\n    output += `\n┌─ DIVERSION ${i + 1} ─────────────────────────────────────────────┐\n│\n│  Flight:              ${div.flight_id}\n│  From:                ${payload.disruption?.hub_airport || 'YYZ'} (${payload.disruption?.hub_airport_name || 'Toronto Pearson'})\n│  To:                  ${div.to_airport} (${div.to_airport_name})\n│  Urgency:             ${div.urgency || 'IMMEDIATE'}\n│  ETA at alternate:    ${div.eta_at_alternate}\n│  \n│  Passengers:\n│    • Total onboard:   ${div.total_pax_onboard}\n│    • Business class:  ${div.pax_breakdown?.business || 0}\n│    • Economy class:   ${div.pax_breakdown?.economy || 0}\n│  \n│  Ground Operations Required:\n`;\n    if (div.ground_ops_required) {\n      for (const op of div.ground_ops_required) {\n        output += `│    ✓ ${op}\\n`;\n      }\n    }\n    output += `│  \n│  Contacts to Notify:\n`;\n    if (div.contacts_to_notify) {\n      for (const contact of div.contacts_to_notify) {\n        output += `│    → ${contact}\\n`;\n      }\n    }\n    output += `│\n└─────────────────────────────────────────────────────────┘\n`;\n  }\n} else {\n  output += `\\n  (No diversions ordered)\\n`;\n}\n\noutput += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nDEPARTURE HOLD ORDERS (${(payload.hold_orders || []).length})\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;\n\nif (payload.hold_orders && payload.hold_orders.length > 0) {\n  for (let i = 0; i < payload.hold_orders.length; i++) {\n    const hold = payload.hold_orders[i];\n    output += `\n┌─ HOLD ${i + 1} ──────────────────────────────────────────────────┐\n│\n│  Flight:                  ${hold.flight_id}\n│  Destination:             ${hold.destination}\n│  Status:                  ${hold.action}\n│  Urgency:                 ${hold.urgency}\n│  \n│  Timing:\n│    • Original ETD:        ${hold.original_etd}\n│    • Revised ETD:         ${hold.revised_etd}\n│    • Hold duration:       +${hold.hold_duration_min} minutes\n│  \n│  Impact:\n│    • Connecting PAX protected: ${hold.connecting_pax_protected}\n│    • Hold cost:           $${(hold.hold_cost_usd || 0).toLocaleString('en-US')}\n│  \n│  Gate Actions:\n`;\n    if (hold.gate_actions) {\n      for (const action of hold.gate_actions) {\n        output += `│    ✓ ${action}\\n`;\n      }\n    }\n    output += `│\n└─────────────────────────────────────────────────────────┘\n`;\n  }\n} else {\n  output += `\\n  (No holds ordered)\\n`;\n}\n\noutput += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nALTERNATE AIRPORTS STATUS (${(payload.alternate_airports_activated || []).length})\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;\n\nif (payload.alternate_airports_activated && payload.alternate_airports_activated.length > 0) {\n  for (const alt of payload.alternate_airports_activated) {\n    output += `\n🛬  ${alt.iata} — ${alt.name}\n    Status: ${alt.status}\n    Incoming flights: ${(alt.incoming_flights || []).join(', ') || 'None'}\n    Total PAX: ${alt.total_pax_incoming}\n    Slots: ${alt.slots_used}/${alt.available_slots} used\n    Transfer time to YYZ: ${alt.transfer_time_to_yyz_min} min\n`;\n  }\n} else {\n  output += `\\n  (No alternates activated)\\n`;\n}\n\noutput += `\n╔════════════════════════════════════════════════════════════════╗\n║ End of Authorities Notification                                ║\n║ Generated by: ${payload.issued_by || 'NexusRecover'}${' '.repeat(33 - (payload.issued_by || 'NexusRecover').length)}║\n╚════════════════════════════════════════════════════════════════╝\n`;\n\nreturn { formattedText: output };"
       },
-      "id": "code_format",
-      "name": "Format Email Body",
+      "id": "7ff9f4f5-9c6d-4d3b-8e2d-3f9a2c4d5e6f",
+      "name": "Format Text",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [550, 300]
     },
     {
       "parameters": {
-        "fromEmail": "=YOUR_GMAIL@gmail.com",
-        "toList": {
-          "values": [
-            {
-              "email": "atc@yyz.example.com"
-            },
-            {
-              "email": "ops@yyz.example.com"
-            },
-            {
-              "email": "dispatch@aircanada.example.com"
-            }
-          ]
-        },
-        "subject": "[URGENT] NexusRecover IRROPS Plan Activated - YYZ",
-        "htmlBody": "={{$node[\"Format Email Body\"].json.email_body}}"
+        "fileName": "=/tmp/nexusrecover_authorities_{{$now.toFormat('yyyy-MM-dd_HH-mm-ss')}}.txt",
+        "fileContent": "={{$node[\"Format Text\"].json.formattedText}}",
+        "encoding": "utf8"
       },
-      "id": "email_send",
-      "name": "Send Email to Authorities",
-      "type": "n8n-nodes-base.emailSend",
+      "id": "8gg0g5g6-0d7e-4e4c-9f3e-4g0b3d5e6f7g",
+      "name": "Write to File",
+      "type": "n8n-nodes-base.writeBinaryFile",
       "typeVersion": 1,
-      "position": [850, 300],
-      "credentials": {
-        "smtp": "gmail_smtp"
-      }
+      "position": [850, 300]
     }
   ],
   "connections": {
-    "webhook_authorities": {
-      "main": [
-        [
-          {
-            "node": "code_format",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+    "6ee9e3e4-8b5d-4c2a-9f1d-2e8a1b3c4d5e": {
+      "main": [[{"node": "7ff9f4f5-9c6d-4d3b-8e2d-3f9a2c4d5e6f", "type": "main", "index": 0}]]
     },
-    "code_format": {
-      "main": [
-        [
-          {
-            "node": "email_send",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+    "7ff9f4f5-9c6d-4d3b-8e2d-3f9a2c4d5e6f": {
+      "main": [[{"node": "8gg0g5g6-0d7e-4e4c-9f3e-4g0b3d5e6f7g", "type": "main", "index": 0}]]
     }
   },
-  "active": true,
-  "settings": {
-    "executionOrder": "v1"
-  },
-  "id": "nexusrecover_authorities_workflow"
+  "active": false,
+  "settings": {"executionOrder": "v1", "saveDataExecution": "all", "saveManualExecution": true, "timezone": "UTC"},
+  "staticData": null,
+  "id": "nexusrecover_authorities_2026",
+  "meta": {"instanceId": "6ee9e3e4-8b5d-4c2a-9f1d-2e8a1b3c4d5e"}
 }

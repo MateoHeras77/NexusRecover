@@ -1,161 +1,185 @@
 # NexusRecover — N8N Workflows
 
-Dos workflows listos para importar en tu instancia N8N:
+Dos workflows **listos para importar y activar**. Sin configuración de credenciales. Solo reciben webhooks y guardan notificaciones en archivos de texto plano.
 
-1. **NexusRecover-Authorities.json** — Notifica a ATC, airport ops, y alternos sobre diversiones
-2. **NexusRecover-Hospitality.json** — Notifica a hoteles, transporte, y YYZ sobre PAX varados
+## Workflows Incluidos
 
----
-
-## Cómo importar
-
-1. En tu N8N (`https://tu-vps.com/home/workflows`)
-2. Arriba a la derecha → **Import**
-3. Pega el contenido del JSON (o copia el archivo)
-4. N8N detecta automáticamente los nodos y conexiones
+| Workflow | Propósito |
+|----------|-----------|
+| **NexusRecover-Authorities.json** | Recibe notificaciones para autoridades, ATC, y operaciones aeroportuarias |
+| **NexusRecover-Hospitality.json** | Recibe notificaciones para hoteles, transporte, y servicios al cliente |
 
 ---
 
-## Qué necesito de ti
+## Cómo Importar
 
-Antes de activar los workflows, debo configurar:
+### Opción A — Importar desde archivo
 
-### 1. Credencial Gmail
+1. Ve a tu N8N (`https://tu-vps.com/home/workflows`)
+2. Arriba a la derecha → **+ New** → **Import from file**
+3. Sube `NexusRecover-Authorities.json`
+4. Repite para `NexusRecover-Hospitality.json`
 
-**¿Por qué?** Los workflows envían email vía Gmail SMTP.
+### Opción B — Copiar-pegar JSON
 
-**Pasos:**
-1. Ve a tu cuenta Google → [myaccount.google.com/security](https://myaccount.google.com/security)
-2. Activa 2-factor authentication (si no lo tienes)
-3. En **App passwords** (en el mismo sitio), crea una password de aplicación para "Mail" / "Windows Computer"
-4. Google te da una password de 16 caracteres — cópiala
+1. En N8N → **+ New** → **Import from URL** o copy-paste
+2. Pega el contenido del archivo JSON
+3. N8N lo importa automáticamente
 
-**Qué necesito:**
+---
+
+## Estructura de los Workflows
+
+Cada workflow tiene 3 nodos:
+
 ```
-- Tu correo: example@gmail.com
-- App password: xxxx xxxx xxxx xxxx
+┌─ Webhook ─────────────────────────────────────────┐
+│ Recibe POST con payload de NexusRecover           │
+│ Path: /webhook/authorities o /webhook/hospitality │
+└──────────────────────────────┬──────────────────────┘
+                               │
+┌──────────────────────────────▼──────────────────────┐
+│ Format Text (Code Node)                             │
+│ Convierte payload JSON a texto plano legible        │
+│ con emojis, bordes, y formato visual                │
+└──────────────────────────────┬──────────────────────┘
+                               │
+┌──────────────────────────────▼──────────────────────┐
+│ Write to File (Binary File)                         │
+│ Guarda a: /tmp/nexusrecover_[type]_[timestamp].txt │
+│ Ejm: /tmp/nexusrecover_authorities_2026-03-21_...  │
+└──────────────────────────────────────────────────────┘
 ```
-
-### 2. Emails destinatarios
-
-Cada workflow envía a múltiples direcciones. Dime quiénes deben recibir cada notificación:
-
-**Authorities:**
-- ATC/Tower (YYZ)
-- Airport Ops (YYZ)
-- Dispatch (Air Canada)
-- Otros stakeholders
-
-**Hospitality:**
-- Hoteles contratados
-- Proveedor de transporte
-- Servicio al cliente (Air Canada)
-- Equipo de hospitalidad
 
 ---
 
-## Configuración en N8N
+## Configurar el Nodo Webhook
 
-Una vez importados los workflows:
+⚠️ **PASO CRÍTICO**: Antes de activar, asegúrate de que el nodo Webhook esté configurado para **POST**:
 
-### Paso 1 — Credencial Gmail SMTP
+1. En N8N, abre **NexusRecover — Authorities Notification**
+2. Haz clic en el nodo **Webhook** (el primero del flow)
+3. En el panel derecho, busca **HTTP Method**
+4. Cambia de **GET** a **POST** ✅
+5. Repite para **NexusRecover — Hospitality**
 
-1. En N8N → **Settings** → **Credentials**
-2. **Create new** → **SMTP**
-3. Configura:
+## Activar los Workflows
+
+1. Arriba a la derecha → toggle **Active** (verde = activo)
+2. **Save workflow** (Ctrl+S)
+3. Repite para **NexusRecover — Hospitality**
+
+---
+
+## Obtener las URLs de Webhook
+
+Una vez que ambos workflows estén **Active**:
+
+1. Abre **NexusRecover — Authorities**
+2. Click en el nodo **Webhook**
+3. Debajo del editor verás la URL completa:
    ```
-   Host: smtp.gmail.com
-   Port: 587
-   Email: tu-email@gmail.com
-   Password: [App password de Google — 16 caracteres]
-   TLS: activado
+   https://tu-vps.com/webhook/authorities
    ```
-4. **Save** → nombre: `gmail_smtp`
+4. Repite para el de Hospitality
+   ```
+   https://tu-vps.com/webhook/hospitality
+   ```
 
-### Paso 2 — Editar workflows
+---
 
-En cada workflow:
+## Configurar en NexusRecover
 
-1. Nodo **"Send Email to Authorities"** (o Hospitality)
-2. En **"From Email"**, reemplaza `YOUR_GMAIL@gmail.com`
-3. En **"To List"**, reemplaza los emails con los actuales
+En **Dokploy** → proyecto → **Environment**:
+
+```
+WEBHOOK_AUTHORITIES=https://tu-vps.com/webhook/authorities
+WEBHOOK_HOSPITALITY=https://tu-vps.com/webhook/hospitality
+```
+
+**Save** → **Redeploy** (sin rebuild — son variables del backend)
+
+---
+
+## Probar los Workflows
+
+### Desde NexusRecover
+
+1. Abre la app
+2. Llega al **Paso 3: Nexus Plan** (corre el optimizer)
+3. Haz clic en **Notify Authorities**
+4. En N8N, abre el workflow → pestaña **Executions**
+5. Deberías ver la ejecución completada ✅
+
+### Ver los archivos generados
+
+En la terminal del servidor N8N:
+
+```bash
+# Listar archivos
+ls -lah /tmp/nexusrecover_*.txt
+
+# Ver contenido del más reciente
+cat /tmp/nexusrecover_authorities_*.txt | tail -100
+```
+
+---
+
+## Formato de Salida
+
+Cada archivo contiene:
+
+✅ **Para Authorities:**
+- Contexto de la disrupción (hub, event, capacidad)
+- Resumen del optimizador (costos, PAX, acciones)
+- Órdenes de diversion detalladas (flight, destino, PAX, contactos)
+- Órdenes de hold para departures (timing, PAX, acciones en gate)
+- Estado de aeropuertos alternos
+
+✅ **Para Hospitality:**
+- Resumen de disrupción
+- Operaciones en aeropuertos alternos (vuelos, PAX, transporte, requisitos on-site)
+- Pasajeros varados en hub (hotel, vouchers)
+- Requisitos en YYZ hub (lounge, desks, rebooking, script)
+- Resumen de costos
+
+---
+
+## Almacenamiento Persistente
+
+Los archivos en `/tmp/` se borran al reiniciar el servidor. Para persistencia:
+
+1. En N8N, abre el nodo **Write to File**
+2. Cambia la ruta:
+   ```
+   De:  /tmp/nexusrecover_authorities_{{$now.toFormat('yyyy-MM-dd_HH-mm-ss')}}.txt
+   A:   /opt/n8n/webhooks/nexusrecover_authorities_{{$now.toFormat('yyyy-MM-dd_HH-mm-ss')}}.txt
+   ```
+3. Asegúrate de que el directorio `/opt/n8n/webhooks/` existe y tiene permisos de escritura
 4. **Save**
-
-### Paso 3 — Activar
-
-1. Abre el workflow → arriba a la derecha, toggle **Active**
-2. N8N genera la URL del webhook automáticamente (debajo del nodo Webhook)
-
----
-
-## Obtener las URLs de webhook
-
-Una vez activos los workflows:
-
-1. Abre **NexusRecover-Authorities** → click en el nodo **Webhook Authorities**
-2. Verás la URL: `https://vps22776.cubepath.net/webhook/authorities`
-3. Repite para **NexusRecover-Hospitality** → URL: `https://vps22776.cubepath.net/webhook/hospitality`
-
----
-
-## Guardar las URLs en NexusRecover
-
-Ve a Dokploy → Environment → actualiza:
-
-```
-VITE_WEBHOOK_AUTHORITIES=https://vps22776.cubepath.net/webhook/authorities
-VITE_WEBHOOK_HOSPITALITY=https://vps22776.cubepath.net/webhook/hospitality
-```
-
-**Save** → **Redeploy con rebuild** (obligatorio — son variables VITE_*)
-
----
-
-## Probar
-
-1. Abre NexusRecover en el navegador
-2. Llega al paso 3 (Nexus Plan) con el optimizer ejecutado
-3. Clic en **Notify Authorities** o **Notify Hospitality**
-4. En N8N → **Executions** deberías ver el webhook recibido
-5. Revisa tu email para confirmar que llegó
-
----
-
-## Estructura del workflow
-
-```
-Webhook (recibe POST)
-    ↓
-Code Node (formatea email en HTML)
-    ↓
-Email Node (envía vía Gmail SMTP)
-```
-
-- **Authorities**: parsea `diversion_orders`, `hold_orders`, y `alternate_airports_activated`
-- **Hospitality**: parsea `alternate_airport_ops`, `stranded_pax_at_hub`, y `yyz_hub_requirements`
 
 ---
 
 ## Troubleshooting
 
-**❌ "SMTP Error 535: Invalid credentials"**
-→ La app password es incorrecta o no está configurada. Revisa en Google myaccount.
-
-**❌ Webhook recibido pero email no llega**
-→ Revisa el **Execution** en N8N para ver el error específico.
-
-**❌ "Email node not found"**
-→ N8N puede tener versiones distintas. El tipo podría ser:
-  - `n8n-nodes-base.emailSend` (SMTP genérico)
-  - `n8n-nodes-base.gmailSend` (Gmail API)
-
-Usa `emailSend` con credencial SMTP configurada.
+| Problema | Solución |
+|----------|----------|
+| **"This webhook is not registered for POST requests"** | ⚠️ El nodo Webhook está en GET. Abre el nodo Webhook → cambia **HTTP Method** a **POST** |
+| **"The requested webhook is not registered"** | El workflow no está **Active**. Abre el workflow → toggle **Active** debe estar verde |
+| **Workflow inactivo** | Abre el workflow → toggle **Active** debe estar verde |
+| **Webhook no recibe requests** | Verifica en **Executions** que el workflow esté activo; comprueba la URL en Dokploy |
+| **Archivos no se crean** | Revisa que `/tmp/` sea escribible (`ls -ld /tmp/`) |
+| **Archivos vacíos** | El Code Node puede tener errores; abre **Executions** y revisa los logs |
 
 ---
 
-¿Listo? Dime:
-1. Tu correo de Gmail
-2. App password (16 caracteres)
-3. Emails destinatarios para cada notificación
+## Notas
 
-Y configuro todo en N8N por ti.
+- Los workflows se guardan en **borrador** hasta que actives el toggle
+- Cada ejecución genera un archivo con timestamp único
+- No hay dependencias de credenciales — es plug-and-play
+- Los Code Nodes usan JavaScript puro (N8N ejecuta en Node.js)
+
+---
+
+¡Listo para desplegar! 🚀
