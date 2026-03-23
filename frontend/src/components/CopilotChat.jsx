@@ -35,6 +35,7 @@ export default function CopilotChat() {
       <button
         onClick={toggleChat}
         className="fixed bottom-20 right-4 flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-500 rounded-full text-sm font-medium shadow-lg transition-all z-50"
+        data-tour="tour-copilot"
       >
         <Bot size={14} />
         Copilot

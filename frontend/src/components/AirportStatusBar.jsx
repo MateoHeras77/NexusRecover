@@ -80,7 +80,7 @@ export default function AirportStatusBar() {
   }
 
   return (
-    <div className="shrink-0 border-b border-slate-700/50 bg-slate-900/60 px-4 py-2 flex items-center justify-center gap-3">
+    <div className="shrink-0 border-b border-slate-700/50 bg-slate-900/60 px-4 py-2 flex items-center justify-center gap-3" data-tour="tour-airport-status">
 
       {/* ── YYZ Hub Card ─────────────────────────────────────────────────── */}
       <div className="flex items-center gap-4 bg-slate-800/50 rounded-lg px-4 py-2 border border-slate-700/40">

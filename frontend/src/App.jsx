@@ -14,6 +14,7 @@ import WaterfallChart from './components/WaterfallChart'
 import PassengerJourneyCards from './components/PassengerJourneyCards'
 import GeoMap from './components/GeoMap'
 import IntroSequence from './components/IntroSequence'
+import GuidedTour from './components/GuidedTour'
 
 function NotifyButton({ label, icon, status, onClick, colorClass, sentClass }) {
   const isSending = status === 'sending'
@@ -86,7 +87,7 @@ export default function App() {
           <span className="text-xs text-slate-500 hidden md:block">IRROPS Decision Support System</span>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3" data-tour="tour-status-badge">
           {/* Dynamic status badge */}
           {timelineStep === 0 && (
             <div className="flex items-center gap-1.5 px-2.5 py-1 bg-green-900/20 border border-green-700/30 rounded-full">
@@ -116,60 +117,62 @@ export default function App() {
             </div>
           )}
 
-          {timelineStep === 3 && optimizeResult && (
-            <NotifyButton
-              label="Notify Authorities"
-              icon={<Radio size={13} />}
-              status={notifyAuthStatus}
-              onClick={notifyAuthorities}
-              colorClass="bg-red-900/20 hover:bg-red-900/40 border-red-700/40 text-red-300"
-              sentClass="bg-red-900/40 border-red-600/60 text-red-200"
-            />
-          )}
+          <div className="flex items-center gap-3" data-tour="tour-actions">
+            {timelineStep === 3 && optimizeResult && (
+              <NotifyButton
+                label="Notify Authorities"
+                icon={<Radio size={13} />}
+                status={notifyAuthStatus}
+                onClick={notifyAuthorities}
+                colorClass="bg-red-900/20 hover:bg-red-900/40 border-red-700/40 text-red-300"
+                sentClass="bg-red-900/40 border-red-600/60 text-red-200"
+              />
+            )}
 
-          {timelineStep === 3 && optimizeResult && (
-            <NotifyButton
-              label="Notify Hospitality"
-              icon={<Hotel size={13} />}
-              status={notifyHospStatus}
-              onClick={notifyHospitality}
-              colorClass="bg-amber-900/20 hover:bg-amber-900/40 border-amber-700/40 text-amber-300"
-              sentClass="bg-amber-900/40 border-amber-600/60 text-amber-200"
-            />
-          )}
+            {timelineStep === 3 && optimizeResult && (
+              <NotifyButton
+                label="Notify Hospitality"
+                icon={<Hotel size={13} />}
+                status={notifyHospStatus}
+                onClick={notifyHospitality}
+                colorClass="bg-amber-900/20 hover:bg-amber-900/40 border-amber-700/40 text-amber-300"
+                sentClass="bg-amber-900/40 border-amber-600/60 text-amber-200"
+              />
+            )}
 
-          {timelineStep >= 2 && (
-            <button
-              onClick={toggleJourneyPanel}
-              className={`flex items-center gap-1.5 px-3 py-1.5 border rounded-lg text-xs font-semibold transition-colors ${
-                journeyPanelOpen
-                  ? 'bg-blue-700/40 border-blue-500/60 text-blue-200'
-                  : 'bg-slate-700/30 hover:bg-slate-700/50 border-slate-600/40 text-slate-300'
-              }`}
-            >
-              <Users size={13} />
-              Passengers
-            </button>
-          )}
+            {timelineStep >= 2 && (
+              <button
+                onClick={toggleJourneyPanel}
+                className={`flex items-center gap-1.5 px-3 py-1.5 border rounded-lg text-xs font-semibold transition-colors ${
+                  journeyPanelOpen
+                    ? 'bg-blue-700/40 border-blue-500/60 text-blue-200'
+                    : 'bg-slate-700/30 hover:bg-slate-700/50 border-slate-600/40 text-slate-300'
+                }`}
+              >
+                <Users size={13} />
+                Passengers
+              </button>
+            )}
 
-          {timelineStep === 3 && optimizeResult && !compareMode && (
-            <button
-              onClick={toggleCompareMode}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-700/20 hover:bg-blue-700/40 border border-blue-600/40 rounded-lg text-xs font-semibold text-blue-300 transition-colors"
-            >
-              <GitCompare size={13} />
-              Compare
-            </button>
-          )}
-          {timelineStep === 3 && optimizeResult && (
-            <button
-              onClick={() => setShowReport(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-700/30 hover:bg-emerald-700/50 border border-emerald-600/50 rounded-lg text-xs font-semibold text-emerald-300 transition-colors"
-            >
-              <FileText size={13} />
-              Revisar Reporte
-            </button>
-          )}
+            {timelineStep === 3 && optimizeResult && !compareMode && (
+              <button
+                onClick={toggleCompareMode}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-700/20 hover:bg-blue-700/40 border border-blue-600/40 rounded-lg text-xs font-semibold text-blue-300 transition-colors"
+              >
+                <GitCompare size={13} />
+                Compare
+              </button>
+            )}
+            {timelineStep === 3 && optimizeResult && (
+              <button
+                onClick={() => setShowReport(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-700/30 hover:bg-emerald-700/50 border border-emerald-600/50 rounded-lg text-xs font-semibold text-emerald-300 transition-colors"
+              >
+                <FileText size={13} />
+                Revisar Reporte
+              </button>
+            )}
+          </div>
 
           <button
             onClick={() => setShowMap(true)}
@@ -201,7 +204,7 @@ export default function App() {
             </aside>
 
             {/* Center — Sankey + Waterfall */}
-            <section className="flex-1 overflow-hidden bg-slate-950/40 flex flex-col min-h-0">
+            <section className="flex-1 overflow-hidden bg-slate-950/40 flex flex-col min-h-0" data-tour="tour-sankey">
               <div className="flex-1 relative overflow-hidden min-h-0">
                 <SankeyDiagram />
               </div>
@@ -261,6 +264,9 @@ export default function App() {
 
       {/* ── Passenger Journey Cards (slide-in panel) ─────────────────────── */}
       <PassengerJourneyCards />
+
+      {/* ── Guided tour ─────────────────────────────────────────────────────── */}
+      <GuidedTour />
 
       {/* ── Intro sequence (overlay) ──────────────────────────────────────── */}
       {!introComplete && <IntroSequence onComplete={completeIntro} />}

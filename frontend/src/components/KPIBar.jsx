@@ -36,7 +36,7 @@ export default function KPIBar() {
     n >= 1000 ? `$${(n / 1000).toFixed(1)}K` : `$${Math.round(n)}`
 
   return (
-    <div className="relative flex items-center justify-center bg-slate-900/90 border-b border-slate-700/50 h-14 shrink-0 overflow-hidden">
+    <div className="relative flex items-center justify-center bg-slate-900/90 border-b border-slate-700/50 h-14 shrink-0 overflow-hidden" data-tour="tour-kpi-bar">
       {/* Subtle gradient glow when results are in */}
       {hasResult && (
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-green-950/20 to-transparent pointer-events-none" />

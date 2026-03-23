@@ -17,7 +17,7 @@ export default function Timeline() {
   }
 
   return (
-    <div className="flex items-center justify-center gap-0 h-full px-4">
+    <div className="flex items-center justify-center gap-0 h-full px-4" data-tour="tour-timeline">
       {TIMELINE_STATES.map((state, i) => {
         const isActive = timelineStep === state.id
         const isPast = timelineStep > state.id
