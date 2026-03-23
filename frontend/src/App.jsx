@@ -13,6 +13,7 @@ import CompareView from './components/CompareView'
 import WaterfallChart from './components/WaterfallChart'
 import PassengerJourneyCards from './components/PassengerJourneyCards'
 import GeoMap from './components/GeoMap'
+import IntroSequence from './components/IntroSequence'
 
 function NotifyButton({ label, icon, status, onClick, colorClass, sentClass }) {
   const isSending = status === 'sending'
@@ -49,6 +50,7 @@ function NotifyButton({ label, icon, status, onClick, colorClass, sentClass }) {
 
 export default function App() {
   const {
+    introComplete, completeIntro,
     fetchScenario, timelineStep, scenario, optimizeResult,
     showReport, setShowReport, compareMode, toggleCompareMode,
     journeyPanelOpen, toggleJourneyPanel,
@@ -259,6 +261,9 @@ export default function App() {
 
       {/* ── Passenger Journey Cards (slide-in panel) ─────────────────────── */}
       <PassengerJourneyCards />
+
+      {/* ── Intro sequence (overlay) ──────────────────────────────────────── */}
+      {!introComplete && <IntroSequence onComplete={completeIntro} />}
     </div>
   )
 }

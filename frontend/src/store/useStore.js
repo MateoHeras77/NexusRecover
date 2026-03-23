@@ -21,6 +21,10 @@ export const useStore = create((set, get) => ({
   scenario: null,
   optimizeResult: null,
 
+  // ── Intro ────────────────────────────────────────────────────────────────
+  introComplete: false,
+  completeIntro: () => set({ introComplete: true }),
+
   // ── UI state ──────────────────────────────────────────────────────────────
   timelineStep: 0,
   isOptimizing: false,
