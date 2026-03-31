@@ -41,7 +41,7 @@ function NotifyButton({ label, icon, status, onClick, colorClass, sentClass, gif
       const hideTimer = setTimeout(() => {
         setGifVisible(false)
         setTimeout(() => setShowGif(false), 500)
-      }, 4000)
+      }, 7000)
       return () => clearTimeout(hideTimer)
     }
   }, [showGif])
@@ -73,18 +73,27 @@ function NotifyButton({ label, icon, status, onClick, colorClass, sentClass, gif
 
       {showGif && (
         <div
-          className={`absolute top-full left-1/2 -translate-x-1/2 mt-3 z-50 transition-all duration-500 ${
-            gifVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-90'
+          className={`fixed inset-0 z-50 flex items-center justify-center transition-all duration-500 ${
+            gifVisible ? 'opacity-100' : 'opacity-0'
           }`}
+          style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
+          onClick={() => { setGifVisible(false); setTimeout(() => setShowGif(false), 500) }}
         >
-          <div className="bg-slate-900/95 border border-slate-600/60 rounded-xl p-3 shadow-2xl shadow-black/50 backdrop-blur-sm min-w-[280px]">
-            <p className="text-[10px] text-slate-400 text-center mb-2 font-medium uppercase tracking-wider">
+          <div
+            className={`bg-slate-900/95 border border-slate-600/60 rounded-2xl p-5 shadow-2xl shadow-black/50 backdrop-blur-md transition-all duration-500 ${
+              gifVisible ? 'scale-100' : 'scale-90'
+            }`}
+            style={{ maxWidth: '50vw', maxHeight: '80vh' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <p className="text-sm text-slate-300 text-center mb-3 font-semibold uppercase tracking-wider">
               {gifTitle}
             </p>
             <img
               src={gifSrc}
               alt={label}
-              className="rounded-lg w-[260px] h-auto"
+              className="rounded-xl w-full h-auto"
+              style={{ maxWidth: '48vw', maxHeight: '70vh', objectFit: 'contain' }}
             />
           </div>
         </div>
