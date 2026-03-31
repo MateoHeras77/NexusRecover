@@ -16,36 +16,80 @@ import GeoMap from './components/GeoMap'
 import IntroSequence from './components/IntroSequence'
 import GuidedTour from './components/GuidedTour'
 
-function NotifyButton({ label, icon, status, onClick, colorClass, sentClass }) {
+function NotifyButton({ label, icon, status, onClick, colorClass, sentClass, gifSrc, gifTitle }) {
   const isSending = status === 'sending'
   const isSent    = status === 'sent'
   const isError   = status === 'error'
+  const [showGif, setShowGif] = useState(false)
+  const [gifVisible, setGifVisible] = useState(false)
+
+  useEffect(() => {
+    if (isSent) {
+      const showTimer = setTimeout(() => {
+        setShowGif(true)
+        setGifVisible(true)
+      }, 2000)
+      return () => clearTimeout(showTimer)
+    } else {
+      setShowGif(false)
+      setGifVisible(false)
+    }
+  }, [isSent])
+
+  useEffect(() => {
+    if (showGif) {
+      const hideTimer = setTimeout(() => {
+        setGifVisible(false)
+        setTimeout(() => setShowGif(false), 500)
+      }, 4000)
+      return () => clearTimeout(hideTimer)
+    }
+  }, [showGif])
 
   const base = 'flex items-center gap-1.5 px-3 py-1.5 border rounded-lg text-xs font-semibold transition-all duration-200'
 
-  if (isSent) return (
-    <div className={`${base} ${sentClass}`}>
-      <CheckCircle2 size={13} />
-      Sent ✓
-    </div>
-  )
-
-  if (isError) return (
-    <div className={`${base} bg-red-900/40 border-red-500/60 text-red-300`}>
-      <AlertTriangle size={13} />
-      Failed
-    </div>
-  )
-
   return (
-    <button
-      onClick={onClick}
-      disabled={isSending}
-      className={`${base} ${colorClass} disabled:opacity-60 disabled:cursor-not-allowed`}
-    >
-      {isSending ? <Loader2 size={13} className="animate-spin" /> : icon}
-      {isSending ? 'Sending…' : label}
-    </button>
+    <div className="relative">
+      {isSent ? (
+        <div className={`${base} ${sentClass}`}>
+          <CheckCircle2 size={13} />
+          Sent ✓
+        </div>
+      ) : isError ? (
+        <div className={`${base} bg-red-900/40 border-red-500/60 text-red-300`}>
+          <AlertTriangle size={13} />
+          Failed
+        </div>
+      ) : (
+        <button
+          onClick={onClick}
+          disabled={isSending}
+          className={`${base} ${colorClass} disabled:opacity-60 disabled:cursor-not-allowed`}
+        >
+          {isSending ? <Loader2 size={13} className="animate-spin" /> : icon}
+          {isSending ? 'Sending…' : label}
+        </button>
+      )}
+
+      {showGif && (
+        <div
+          className={`absolute top-full left-1/2 -translate-x-1/2 mt-3 z-50 transition-all duration-500 ${
+            gifVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-90'
+          }`}
+        >
+          <div className="bg-slate-900/95 border border-slate-600/60 rounded-xl p-3 shadow-2xl shadow-black/50 backdrop-blur-sm min-w-[280px]">
+            <p className="text-[10px] text-slate-400 text-center mb-2 font-medium uppercase tracking-wider">
+              {gifTitle}
+            </p>
+            <img
+              src={gifSrc}
+              alt={label}
+              className="rounded-lg w-[260px] h-auto"
+            />
+          </div>
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -126,6 +170,8 @@ export default function App() {
                 onClick={notifyAuthorities}
                 colorClass="bg-red-900/20 hover:bg-red-900/40 border-red-700/40 text-red-300"
                 sentClass="bg-red-900/40 border-red-600/60 text-red-200"
+                gifSrc="/IRROPS ALERT.gif"
+                gifTitle="Webhook N8N → IRROPS Notification Sent"
               />
             )}
 
@@ -137,6 +183,8 @@ export default function App() {
                 onClick={notifyHospitality}
                 colorClass="bg-amber-900/20 hover:bg-amber-900/40 border-amber-700/40 text-amber-300"
                 sentClass="bg-amber-900/40 border-amber-600/60 text-amber-200"
+                gifSrc="/HOSPITALITY Alert.gif"
+                gifTitle="Webhook N8N → Hospitality Notification Sent"
               />
             )}
 
