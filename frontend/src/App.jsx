@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { useStore } from './store/useStore'
 import SankeyDiagram from './components/SankeyDiagram'
 import { InboundPanel, OutboundPanel } from './components/FlightPanel'
@@ -22,39 +22,29 @@ function NotifyButton({ label, icon, status, onClick, colorClass, sentClass, gif
   const isError   = status === 'error'
   const [showGif, setShowGif] = useState(false)
   const [gifVisible, setGifVisible] = useState(false)
-  const showTimerRef = useRef(null)
-  const hideTimerRef = useRef(null)
-  const fadeTimerRef = useRef(null)
-  const hasTriggeredRef = useRef(false)
-
-  const dismissGif = useCallback(() => {
-    setGifVisible(false)
-    if (fadeTimerRef.current) clearTimeout(fadeTimerRef.current)
-    fadeTimerRef.current = setTimeout(() => setShowGif(false), 500)
-  }, [])
 
   useEffect(() => {
-    if (isSent && !hasTriggeredRef.current) {
-      hasTriggeredRef.current = true
-      showTimerRef.current = setTimeout(() => {
+    if (isSent) {
+      const showTimer = setTimeout(() => {
         setShowGif(true)
         setGifVisible(true)
-        hideTimerRef.current = setTimeout(() => {
-          dismissGif()
-        }, 7000)
       }, 2000)
+      return () => clearTimeout(showTimer)
+    } else {
+      setShowGif(false)
+      setGifVisible(false)
     }
-    return () => {
-      if (!isSent) {
-        hasTriggeredRef.current = false
-        if (showTimerRef.current) clearTimeout(showTimerRef.current)
-        if (hideTimerRef.current) clearTimeout(hideTimerRef.current)
-        if (fadeTimerRef.current) clearTimeout(fadeTimerRef.current)
-        setShowGif(false)
+  }, [isSent])
+
+  useEffect(() => {
+    if (showGif) {
+      const hideTimer = setTimeout(() => {
         setGifVisible(false)
-      }
+        setTimeout(() => setShowGif(false), 500)
+      }, 7000)
+      return () => clearTimeout(hideTimer)
     }
-  }, [isSent, dismissGif])
+  }, [showGif])
 
   const base = 'flex items-center gap-1.5 px-3 py-1.5 border rounded-lg text-xs font-semibold transition-all duration-200'
 
@@ -87,7 +77,7 @@ function NotifyButton({ label, icon, status, onClick, colorClass, sentClass, gif
             gifVisible ? 'opacity-100' : 'opacity-0'
           }`}
           style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
-          onClick={dismissGif}
+          onClick={() => { setGifVisible(false); setTimeout(() => setShowGif(false), 500) }}
         >
           <div
             className={`bg-slate-900/95 border border-slate-600/60 rounded-2xl p-5 shadow-2xl shadow-black/50 backdrop-blur-md transition-all duration-500 ${
